@@ -1,0 +1,272 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Inglese (Stati Uniti) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ITA)\r\n"
+    "LANGUAGE 16, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\script1.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""     // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG1 DIALOGEX 0, 0, 380, 306
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Chiudi Finestra",IDOK,291,7,82,14
+    PUSHBUTTON      "Annulla",IDCANCEL,291,25,82,14
+    CTEXT           "Taglia",IDC_STATIC,17,7,45,8
+    EDITTEXT        IDC_EDIT1,72,7,40,14,ES_AUTOHSCROLL
+    LTEXT           "Tipologia Stampo",IDC_STATIC,21,78,55,8
+    COMBOBOX        IDC_COMBO2,94,76,101,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT2,180,132,40,14,ES_AUTOHSCROLL | WS_DISABLED
+    COMBOBOX        IDC_CMBAltezzaTacco,82,34,66,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Altezza Stampo",IDC_STATIC,17,37,55,8
+    LTEXT           "Diametro dello stampo = 127 mm",IDC_STATIC,163,36,106,8
+    LTEXT           "Altezza Fondello",IDC_STATIC,21,60,55,8
+    COMBOBOX        IDC_CMBAltezzaFondello,94,57,101,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Genera Piano Visionale",IDC_BUTTON1,291,43,82,14
+    GROUPBOX        "",IDC_STATIC,7,92,220,207
+    GROUPBOX        "Rotazione Traslazione Tacco",IDC_STATIC,243,155,130,144,BS_CENTER
+    CTEXT           "Traslazione sull'asse X",IDC_STATIC,265,212,37,31
+    CTEXT           "Rotazione rispetto punto base",IDC_STATIC,265,168,42,35
+    CONTROL         "Tacco con Spina",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,110,67,10
+    CONTROL         "Centrale",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,108,103,43,10
+    CONTROL         "Disassata",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,108,118,47,10
+    LTEXT           "Valore del disassamento",IDC_STATIC,25,196,78,8,WS_DISABLED
+    CONTROL         "Iniezione Centrale",IDC_RADIO3,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | WS_TABSTOP,7,156,74,10
+    CONTROL         "Iniezione Disassata",IDC_RADIO4,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | WS_TABSTOP,7,177,77,10
+    CONTROL         "Fondello di ferro",IDC_RADIO7,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | WS_GROUP | WS_TABSTOP,7,252,68,10
+    CONTROL         "Fondello di alluminio",IDC_RADIO8,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | WS_TABSTOP,7,270,79,10
+    LTEXT           "Valore del disassamento",IDC_STATIC,97,134,78,8,WS_DISABLED
+    COMBOBOX        IDC_COMBO1,112,194,48,30,CBS_DROPDOWN | CBS_SORT | WS_DISABLED | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Genera Cilindro",IDC_BUTTON2,291,61,82,14
+    PUSHBUTTON      "Applica",IDC_BUTTON3,286,252,50,14
+    PUSHBUTTON      "Annulla",IDC_BUTTON4,286,274,50,14
+    EDITTEXT        IDC_EDIT5,314,177,40,14,ES_AUTOHSCROLL | WS_DISABLED
+    EDITTEXT        IDC_EDIT4,313,215,40,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Genera Ugello",IDC_BUTTON5,62,218,50,14
+    GROUPBOX        "",IDC_STATIC,7,146,176,100
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 373
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 299
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_DIALOG1 DLGINIT
+BEGIN
+    IDC_COMBO2, 0x403, 7, 0
+0x6843, 0x7569, 0x6f73, "\000" 
+    IDC_COMBO2, 0x403, 18, 0
+0x6f52, 0x6363, 0x6568, 0x7474, 0x206f, 0x6f4e, 0x6d72, 0x6c61, 0x0065, 
+
+    IDC_COMBO2, 0x403, 22, 0
+0x6f52, 0x6363, 0x6568, 0x7474, 0x206f, 0x7254, 0x7361, 0x6576, 0x7372, 
+0x6c61, 0x0065, 
+    IDC_CMBAltezzaTacco, 0x403, 4, 0
+0x3431, 0x0030, 
+    IDC_CMBAltezzaTacco, 0x403, 4, 0
+0x3631, 0x0030, 
+    IDC_CMBAltezzaTacco, 0x403, 4, 0
+0x3731, 0x0030, 
+    IDC_CMBAltezzaTacco, 0x403, 4, 0
+0x3831, 0x0030, 
+    IDC_CMBAltezzaTacco, 0x403, 4, 0
+0x3032, 0x0030, 
+    IDC_CMBAltezzaFondello, 0x403, 2, 0
+0x0035, 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3031, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3531, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3032, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3532, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3033, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3533, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3034, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3534, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3035, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3535, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3036, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3536, "\000" 
+    IDC_CMBAltezzaFondello, 0x403, 3, 0
+0x3037, "\000" 
+    IDC_COMBO1, 0x403, 4, 0
+0x312b, 0x0032, 
+    IDC_COMBO1, 0x403, 4, 0
+0x312d, 0x0032, 
+    0
+END
+
+#endif    // Inglese (Stati Uniti) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Italiano (Italia) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ITA)
+#ifdef _WIN32
+LANGUAGE LANG_ITALIAN, SUBLANG_ITALIAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041004e4"
+        BEGIN
+            VALUE "CompanyName", "My Company Name"
+            VALUE "FileDescription", "script1"
+            VALUE "FileVersion", "1.0.0.0"
+            VALUE "InternalName", "script1.rhp"
+            VALUE "LegalCopyright", "Copyright © 2012, My Company Name"
+            VALUE "OriginalFilename", "script1.rhp"
+            VALUE "ProductName", "script1"
+            VALUE "ProductVersion", "1.0.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x410, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDP_OLE_INIT_FAILED     "OLE initialization failed.  Make sure that the OLE libraries are the correct version."
+END
+
+#endif    // Italiano (Italia) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ITA)
+LANGUAGE 16, 1
+#pragma code_page(1252)
+#include "res\script1.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"     // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
