@@ -752,9 +752,9 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				/*********************************************/
 				
 				ON_3dPoint provapunto2 = AltezzaTacco;
-				ON_3dPoint provapunto(63.5,0,provapunto2.z);
+				ON_3dPoint provapunto(59.5,0,provapunto2.z);
 				provapunto.z-=0.7;
-				ON_3dPoint pt_1(63.5, 0.0, (height - altfondello));
+				ON_3dPoint pt_1(59.5, 0.0, (height - altfondello));
 				CRhinoLinearDimension* dim_obj = new CRhinoLinearDimension();
 					ON_Plane plane( ON_zx_plane );
 					plane.SetOrigin(pt_1);
@@ -884,6 +884,49 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				  }
 				 
 				  const CRhinoObjRef& split_ref = go.Object(0);
+				  //prova nello stringa oggetto
+
+					CRhinoGetObject go7;
+  go7.SetCommandPrompt( L"Select object to change name" );
+  go7.EnablePreSelect( TRUE );
+  go7.EnableSubObjectSelect( FALSE );
+  go7.GetObjects( 1, 1 );
+  if( go7.CommandResult() != CRhinoCommand::success )
+    return go.CommandResult();
+ 
+  // Get the object reference
+  const CRhinoObjRef& objref = go7.Object(0);
+ 
+  // Get the object
+  const CRhinoObject* obj = objref.Object();
+  if( !obj )
+    return CRhinoCommand::failure;
+ 
+  // Make copy of object attributes. This objects
+  // holds an object's user-defined name.
+  ON_3dmObjectAttributes obj_attribs = obj->Attributes();
+ 
+  // Prompt for new object name
+  CRhinoGetString gs;
+  gs.SetCommandPrompt( L"New object name" );
+  gs.SetDefaultString( obj_attribs.m_name );
+  gs.AcceptNothing( TRUE );
+  gs.GetString();
+  if( gs.CommandResult() != CRhinoCommand::success )
+    return gs.CommandResult();
+ 
+  // Get the string entered by the user
+  ON_wString obj_name = gs.String();
+  obj_name.TrimLeftAndRight();
+ 
+  // Is name the same?
+  if( obj_name.Compare(obj_attribs.m_name) == 0 )
+    return CRhinoCommand::nothing;
+ 
+  // Modify the attributes of the object
+  obj_attribs.m_name = obj_name;
+  context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
+				  //end nello
 				 
 				  const CRhinoObject* split_object = split_ref.Object();
 				  if( !split_object )
