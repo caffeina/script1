@@ -26,11 +26,12 @@ static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID uuid, bool bRedraw )
   return rc;
 }
 
-static bool SelectObjectByUuid( CRhinoDoc& doc, const wchar_t* uuid_str, bool bRedraw )
+static bool SelectObjectByUuid_S( CRhinoDoc& doc, const wchar_t* uuid_str, bool bRedraw )
 {
   bool rc = false;
   if( uuid_str && uuid_str[0] )
     rc = SelectObjectByUuid( doc, ON_UuidFromString(uuid_str), bRedraw );
+  ON_UUID prova = ON_UuidFromString(uuid_str);
   return rc;
 }
 
@@ -886,16 +887,16 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				  const CRhinoObjRef& split_ref = go.Object(0);
 				  //prova nello stringa oggetto
 
-					CRhinoGetObject go7;
+					/*CRhinoGetObject go7;
   go7.SetCommandPrompt( L"Select object to change name" );
   go7.EnablePreSelect( TRUE );
   go7.EnableSubObjectSelect( FALSE );
   go7.GetObjects( 1, 1 );
   if( go7.CommandResult() != CRhinoCommand::success )
-    return go.CommandResult();
+    return go.CommandResult();*/
  
   // Get the object reference
-  const CRhinoObjRef& objref = go7.Object(0);
+  const CRhinoObjRef& objref = go.Object(0);
  
   // Get the object
   const CRhinoObject* obj = objref.Object();
@@ -907,21 +908,22 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
   ON_3dmObjectAttributes obj_attribs = obj->Attributes();
  
   // Prompt for new object name
-  CRhinoGetString gs;
+  /*CRhinoGetString gs;
   gs.SetCommandPrompt( L"New object name" );
   gs.SetDefaultString( obj_attribs.m_name );
   gs.AcceptNothing( TRUE );
   gs.GetString();
   if( gs.CommandResult() != CRhinoCommand::success )
-    return gs.CommandResult();
+    return gs.CommandResult();*/
  
   // Get the string entered by the user
-  ON_wString obj_name = gs.String();
-  obj_name.TrimLeftAndRight();
+  //ON_wString obj_name = gs.String();
+  ON_wString obj_name = L"cilindro1";
+  //obj_name.TrimLeftAndRight();
  
   // Is name the same?
-  if( obj_name.Compare(obj_attribs.m_name) == 0 )
-    return CRhinoCommand::nothing;
+ /* if( obj_name.Compare(obj_attribs.m_name) == 0 )
+    return CRhinoCommand::nothing;*/
  
   // Modify the attributes of the object
   obj_attribs.m_name = obj_name;
@@ -1231,7 +1233,48 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 
 		/*GET A REFERENCE TO THE LAYER TABLE*/
 	  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+	  CRhinoGetObject go9;
+  go9.SetCommandPrompt( L"Select object to change name" );
+  go9.EnablePreSelect( TRUE );
+  go9.EnableSubObjectSelect( FALSE );
+  go9.GetObjects( 1, 1 );
+  if( go9.CommandResult() != CRhinoCommand::success )
+    return go9.CommandResult();
+ 
+  // Get the object reference
+  const CRhinoObjRef& objref9 = go9.Object(0);
+ 
+  // Get the object
+  const CRhinoObject* obj9 = objref9.Object();
+  if( !obj9 )
+    return CRhinoCommand::failure;
+ 
+  // Make copy of object attributes. This objects
+  // holds an object's user-defined name.
+  ON_3dmObjectAttributes obj_attribs9 = obj9->Attributes();
 	
+	    //Prompt for new object name
+  CRhinoGetString gs1;
+  
+  //gs1.SetDefaultString(
+  gs1.SetCommandPrompt( L"New object name" );
+  gs1.SetDefaultString( obj_attribs9.m_name );
+  gs1.AcceptNothing( TRUE );
+  gs1.GetString();
+  if( gs1.CommandResult() != CRhinoCommand::success )
+    return gs1.CommandResult();
+
+ 
+ 
+  // Get the string entered by the user
+  ON_wString obj_name1 = gs1.String();
+  //obj_name.TrimLeftAndRight();
+//const wchar_t* prova5 = new(L"testo");  
+  //wchar_t name( L"testo" ); 
+const wchar_t* szName = gs1.String();
+
+
+	  //SelectObjectByUuid_S(context.m_doc,L"lknksa",true);
 	  //begin calcolo il punto di intersezione per disegnare l'ugello
 	  double valore_ugello =(_wtof(plugin.m_dialog->ValIniezioneDisassamento));
 	  ON_3dPoint inizio_linea (valore_ugello,0,0);
