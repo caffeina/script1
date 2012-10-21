@@ -20,7 +20,6 @@ static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID  uuid, bool bRedraw )
   if( object  )
   {
     object->Select( true );
-	object->Highlight(false);
     if( bRedraw )
       doc.Redraw();
     rc = true;
@@ -1484,15 +1483,39 @@ CTestUserData* ud = CTestUserData::Cast( obj_attribs9.GetUserData(ud->Id()) );
   revsrf->m_angle[1] = revsrf->m_t[1] = 2.0*ON_PI;
  
   ON_Brep* tcone_brep = ON_BrepRevSurface(revsrf, TRUE, TRUE );
+  unsigned int first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
   if( tcone_brep )
   {
     CRhinoBrepObject* tcone_object = new CRhinoBrepObject();
     tcone_object->SetBrep( tcone_brep );
+	
+
     if( context.m_doc.AddObject(tcone_object) )
       context.m_doc.Redraw();
     else
       delete tcone_object;
   }
+
+  unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+  	   //if the two are the same, then nothing happened
+	  if( first_sn == next_sn )
+	    return CRhinoCommand::nothing;
+	  else
+
+	  {
+		  const CRhinoObject* objN = context.m_doc.LookupObjectByRuntimeSerialNumber( first_sn );
+		   ON_3dmObjectAttributes obj_attribs = objN->Attributes();
+ 
+ 
+  ON_wString obj_name = L"ugello";
+ 
+ 
+  // Modify the attributes of the object
+  obj_attribs.m_name = obj_name;
+  const CRhinoObjRef& objref = objN;
+  context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
+				  
+	  }
 
 
 //////
