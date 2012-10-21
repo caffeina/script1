@@ -8,17 +8,19 @@
 #include "afxwin.h"
 #include "script1App.h"
 #include "atlstr.h"
+#include "TestUserData.h"
 
-
+// && object->IsSelectable()
 ON_UUID pvcurva;
 ON_3dPoint AltezzaTacco;
-static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID uuid, bool bRedraw )
+static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID  uuid, bool bRedraw )
 {
   bool rc = false;
   const CRhinoObject* object = doc.LookupObject( uuid );
-  if( object && object->IsSelectable() )
+  if( object  )
   {
     object->Select( true );
+	object->Highlight(false);
     if( bRedraw )
       doc.Redraw();
     rc = true;
@@ -26,14 +28,23 @@ static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID uuid, bool bRedraw )
   return rc;
 }
 
-static bool SelectObjectByUuid_S( CRhinoDoc& doc, const wchar_t* uuid_str, bool bRedraw )
-{
-  bool rc = false;
-  if( uuid_str && uuid_str[0] )
-    rc = SelectObjectByUuid( doc, ON_UuidFromString(uuid_str), bRedraw );
-  ON_UUID prova = ON_UuidFromString(uuid_str);
-  return rc;
-}
+//static bool SelectObjectByUuid_S( CRhinoDoc& doc, const wchar_t* uuid_str, bool bRedraw )
+//{
+//  bool rc = false;
+// 
+//  if( uuid_str && uuid_str[0] )
+//    rc = SelectObjectByUuid( doc, ON_UuidFromString(uuid_str), bRedraw );
+//  ON_UUID prova = ON_UuidFromString(uuid_str);
+//   
+//  const CRhinoObject* object = doc.LookupObject( prova );
+//  if( object && object->IsSelectable() )
+//  {
+//    object->Select( true );
+//    if( bRedraw )
+//      doc.Redraw();
+//  }
+//  return rc;
+//}
 
 
 
@@ -607,6 +618,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 	const CRhinoBrepObject* brep_obj;
 	const CRhinoCurveObject* curve_obj;
 	const CRhinoSurfaceObject* surface_obj;
+	int surf_count=0;
 	if( object_count > 0 )
 	{
 		int brep_obj_count = 0;
@@ -631,6 +643,11 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			{
 				polycurve_count++;
 			}
+					  surface_obj = CRhinoSurfaceObject::Cast( object );
+		   if( surface_obj )
+		   {
+			surf_count++;
+		   }
 		}
 		if( brep_obj_count == 0)
 		{
@@ -1233,6 +1250,7 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 
 		/*GET A REFERENCE TO THE LAYER TABLE*/
 	  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+	  
 	  CRhinoGetObject go9;
   go9.SetCommandPrompt( L"Select object to change name" );
   go9.EnablePreSelect( TRUE );
@@ -1246,6 +1264,7 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
  
   // Get the object
   const CRhinoObject* obj9 = objref9.Object();
+   obj9->Select( false );
   if( !obj9 )
     return CRhinoCommand::failure;
  
@@ -1257,24 +1276,30 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
   CRhinoGetString gs1;
   
   //gs1.SetDefaultString(
-  gs1.SetCommandPrompt( L"New object name" );
+  /*gs1.SetCommandPrompt( L"New object name" );
   gs1.SetDefaultString( obj_attribs9.m_name );
   gs1.AcceptNothing( TRUE );
   gs1.GetString();
   if( gs1.CommandResult() != CRhinoCommand::success )
-    return gs1.CommandResult();
+    return gs1.CommandResult();*/
 
  
  
   // Get the string entered by the user
-  ON_wString obj_name1 = gs1.String();
-  //obj_name.TrimLeftAndRight();
-//const wchar_t* prova5 = new(L"testo");  
-  //wchar_t name( L"testo" ); 
-const wchar_t* szName = gs1.String();
+//  ON_wString obj_name1 = gs1.String();
+//  //obj_name.TrimLeftAndRight();
+////const wchar_t* prova5 = new(L"testo");  
+//  //wchar_t name( L"testo" ); 
+//const wchar_t* szName = gs1.String();
+
+CTestUserData* ud = CTestUserData::Cast( obj_attribs9.GetUserData(ud->Id()) );
+
+	  //SelectObjectByUuid_S(context.m_doc,obj_attribs9.m_name,true);
+	  SelectObjectByUuid(context.m_doc,obj_attribs9.m_uuid,true);
 
 
-	  //SelectObjectByUuid_S(context.m_doc,L"lknksa",true);
+
+
 	  //begin calcolo il punto di intersezione per disegnare l'ugello
 	  double valore_ugello =(_wtof(plugin.m_dialog->ValIniezioneDisassamento));
 	  ON_3dPoint inizio_linea (valore_ugello,0,0);
@@ -1310,7 +1335,7 @@ const wchar_t* szName = gs1.String();
 	   //const ON_Object* obj_ptr = context.m_doc.LookupDocumentObject(pvcurva, false);
 //	   CRhinoObjRef& objref5 = CRhinoObject* LookupObject(pvcurva);
 	  
-		SelectObjectByUuid( context.m_doc, pvcurva, true );
+		//SelectObjectByUuid( context.m_doc, pvcurva, true );
 
 	   //const CRhinoObject* object = context.m_doc.LookupObject( pvcurva );
 	   //ON_TextLog* text_log;

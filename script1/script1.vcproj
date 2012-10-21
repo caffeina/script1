@@ -332,6 +332,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\TestUserData.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\VariantUtilities.cpp"
 				>
 			</File>
@@ -375,6 +379,10 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TestUserData.h"
 				>
 			</File>
 			<File
