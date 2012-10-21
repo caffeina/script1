@@ -45,7 +45,24 @@ static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID  uuid, bool bRedraw )
 //  return rc;
 //}
 
+static bool SetNametoObject( CRhinoDoc& doc,unsigned int first_sn, ON_wString  name, bool bRedraw )
+{
 
+	 bool rc = false;
+	const CRhinoObject* objN = doc.LookupObjectByRuntimeSerialNumber( first_sn );
+		   ON_3dmObjectAttributes obj_attribs = objN->Attributes();
+ 
+ 
+  // Modify the attributes of the object
+  obj_attribs.m_name = name;
+  const CRhinoObjRef& objref = objN;
+  doc.ModifyObjectAttributes( objref, obj_attribs );
+    if( bRedraw )
+      doc.Redraw();
+    rc = true;
+  
+  return rc;
+}
 
 
 
@@ -1503,17 +1520,9 @@ CTestUserData* ud = CTestUserData::Cast( obj_attribs9.GetUserData(ud->Id()) );
 	  else
 
 	  {
-		  const CRhinoObject* objN = context.m_doc.LookupObjectByRuntimeSerialNumber( first_sn );
-		   ON_3dmObjectAttributes obj_attribs = objN->Attributes();
- 
- 
-  ON_wString obj_name = L"ugello";
- 
- 
-  // Modify the attributes of the object
-  obj_attribs.m_name = obj_name;
-  const CRhinoObjRef& objref = objN;
-  context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
+		  ON_wString obj_name = L"ugello";
+		  SetNametoObject(context.m_doc,first_sn,obj_name,true);
+		 
 				  
 	  }
 
