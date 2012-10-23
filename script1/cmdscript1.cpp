@@ -755,8 +755,11 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			/*ADD CYLINDER*/
 			ON_Cylinder cylinder( circle, zaxis.Length() );
 			ON_Brep* brep = ON_BrepCylinder( cylinder, TRUE, TRUE );
+			unsigned int first_SN;
+			unsigned int next_SN;
 			if( brep )
 			{
+				first_SN = CRhinoObject::NextRuntimeObjectSerialNumber();
 				/********************/
 				/*TRANSLATE CYLINDER*/
 				/********************/
@@ -764,7 +767,8 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				CString strCBText1;
 				plugin.m_dialog->AltezzaFondelloControllo.GetLBText( nIndex1, strCBText1);
 				int altfondello = _wtoi(strCBText1);
-				
+				ON_wString obj_nameCyl = L"Cilindro";
+								
 				
 				brep->Translate(ON_3dVector( 0.0, 0.0, -altfondello));
 				CRhinoBrepObject* cylinder_object = new CRhinoBrepObject();
@@ -772,6 +776,15 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				if( context.m_doc.AddObject(cylinder_object) )
 				{
 					context.m_doc.Redraw();
+					next_SN = CRhinoObject::NextRuntimeObjectSerialNumber();
+					if( first_SN == next_SN )
+					{
+						return CRhinoCommand::nothing;
+					}
+					else
+					{
+						SetNametoObject(context.m_doc,first_SN,obj_nameCyl,true);			  
+					}
 				}
 				else
 				{
@@ -908,33 +921,36 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 
 
 				/******************************************************/
-				/*******************************************/
-				/*ATTACH USER STRING TO OBJECT'S ATTRIBUTES*/ 
-				/*******************************************/
-				//ON_wString key = L"test";
-				//ON_wString text = L"surf";
-				//curve0.SetUserString(key, text);
-
-				ON_SimpleArray<ON_Brep*> cutters;
+				/*****************************/
+				/*USER GIVES NAME TO SURFACES*/ 
+				/*****************************/
+				unsigned int first_sn;
+				unsigned int next_sn;
+				ON_wString obj_name;
 				object_count = context.m_doc.LookupObject( layer, objects );
 				for(int i = 0; i < object_count; i++ )
 				{
 					object = objects[ i ];
+					first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+
 					/*******************************/
 					/*TRY CASTING AS A CURVE OBJECT*/ 
 					/*******************************/
 					curve_obj = CRhinoCurveObject::Cast( object );
 					if( curve_obj )
 					{
-
-						//CRhinoObjectAttributes attribs = curve_obj->Attributes();
-						//attribs.SetUserString( key, text );
-						//context.m_doc.ModifyObjectAttributes( curve_obj, attribs );
-
-
 						const ON_Geometry* geo = curve_obj->Geometry();
 						const ON_Curve* curve00 = ON_Curve::Cast(geo); 
-						ON_3dPoint point = curve00->PointAt(0.0);
+						ON_3dPoint point  = curve00->PointAt(0.0);
+						ON_3dPoint point_ = curve00->PointAt(1.0);
+						if((point.z + point_.z)/2 > 0.0)
+						{
+							obj_name = L"surfPV";
+						}
+						else
+						{
+							obj_name = L"surfFO";
+						}
 						ON_3dPoint point0(point.x, (point.y + 70.0), point.z);
 						ON_3dPoint point1(point.x, (point.y - 70.0), point.z);
 						ON_LineCurve* curve = new ON_LineCurve();
@@ -945,10 +961,19 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 
 						if( context.m_doc.AddSurfaceObject(sumSurf0) )
 						{
-							ON_Brep* brep = ON_Brep::Cast(&sumSurf0); 
-							cutters.Append(brep);
+
 							context.m_doc.Redraw();
+							next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+							if( first_sn == next_sn )
+							{
+								return CRhinoCommand::nothing;
+							}
+							else
+							{
+								SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
+							}
 						}
+
 					}
 				}/*CLOSED FOR*/
 
@@ -963,6 +988,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				//		R++;
 				//	}
 				//}
+
 
 			  /************************/
 			  /*TRY SPLITTING THE BREP*/
@@ -1109,6 +1135,34 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			  }
 
 
+
+		    /*CREATE A NEW LAYER*/
+			  ON_Layer layer;
+			  int layer_index = 0;
+			  ON_Color color = ON_Color(0, 0, 0);
+			  ON_wString layer_name_FONDELLO = L"FONDELLO";
+			  layer.SetLayerName( layer_name_FONDELLO );
+			  layer.SetPlotColor(color.Green());
+
+			/*ADD THE LAYER TO THE LAYER TABLE*/ 
+			  layer_index = context.m_doc.m_layer_table.AddLayer( layer );
+
+			  ON_wString layer_name_MATRICE  = L"MATRICE";
+			  layer.SetLayerName( layer_name_MATRICE );
+			  layer.SetColor(color.Red());
+
+			/*ADD THE LAYER TO THE LAYER TABLE*/ 
+			  layer_index = context.m_doc.m_layer_table.AddLayer( layer );
+
+
+			  ON_wString layer_name_FISSO    = L"FISSO";
+			  layer.SetLayerName( layer_name_FISSO );
+			  layer.SetColor(color.Blue());
+
+			/*ADD THE LAYER TO THE LAYER TABLE*/ 
+			  layer_index = context.m_doc.m_layer_table.AddLayer( layer );
+	  
+			  context.m_doc.Redraw();
 			/*********************************************************/
 			}
 		}/*CLOSED IF OVER CHECKING BREP COUNT OBJECT*/
@@ -1584,17 +1638,14 @@ selectobjectbyuuid_s(context.m_doc,obj_name,true);
   }
 
   unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
-  	   //if the two are the same, then nothing happened
-	  if( first_sn == next_sn )
-	    return CRhinoCommand::nothing;
-	  else
-
-	  {
-		  ON_wString obj_name = L"ugello";
-		  SetNametoObject(context.m_doc,first_sn,obj_name,true);
-		 
-				  
-	  }
+  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+  if( first_sn == next_sn )
+    return CRhinoCommand::nothing;
+  else
+  {
+	  ON_wString obj_name = L"ugello";
+	  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
+  }
 
 
 //////
