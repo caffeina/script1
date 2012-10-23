@@ -27,23 +27,91 @@ static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID  uuid, bool bRedraw )
   return rc;
 }
 
-//static bool SelectObjectByUuid_S( CRhinoDoc& doc, const wchar_t* uuid_str, bool bRedraw )
-//{
-//  bool rc = false;
-// 
-//  if( uuid_str && uuid_str[0] )
-//    rc = SelectObjectByUuid( doc, ON_UuidFromString(uuid_str), bRedraw );
-//  ON_UUID prova = ON_UuidFromString(uuid_str);
-//   
-//  const CRhinoObject* object = doc.LookupObject( prova );
-//  if( object && object->IsSelectable() )
-//  {
-//    object->Select( true );
-//    if( bRedraw )
-//      doc.Redraw();
-//  }
-//  return rc;
-//}
+static bool selectobjectbyuuid_s( CRhinoDoc& doc, const wchar_t* uuid_str, bool bredraw )
+{
+  bool rc = false;
+    /*CRhinoObjectIterator it(
+        doc,
+        CRhinoObjectIterator::undeleted_objects,
+        CRhinoObjectIterator::active_and_reference_objects
+        );
+  it.IncludeLights();
+ 
+  int count = 0;
+  CRhinoObject* obj = 0;*/
+
+   CRhinoLayerTable& layer_table = doc.m_layer_table;
+	  
+
+
+	  ON_Layer currentLayer;
+  
+		  const CRhinoLayer& current_layer = layer_table.CurrentLayer();
+
+		  int layer_index = layer_table.CurrentLayerIndex();
+		  const CRhinoLayer& layer2 = layer_table[layer_index];
+
+		  ON_SimpleArray<CRhinoObject*> obj_list;
+		  int j, obj_count = doc.LookupObject( layer2, obj_list );
+		  for( j = 0; j < obj_count; j++ )
+		  {
+				  CRhinoObject* obj = obj_list[j];
+					ON_wString prova55 =	obj->Attributes().m_name;
+				 if( obj->Attributes().m_name!= uuid_str)
+				 {::RhinoApp().Print( L"nome oggetto non trovato");}
+				 else
+					 {::RhinoApp().Print( L"trovato");
+				 
+				 rc = true;}
+
+				
+				CRhinoObjRef ref(obj);
+				if( obj  ) //&& object->isselectable()
+  {
+    obj->Select( true );
+    if( bredraw )
+      doc.Redraw();
+  }
+				  if( obj_count )
+				  {
+					
+					
+					if (obj_count >1)
+					::RhinoApp().Print( L"THERE ARE MORE OBJETC");
+					}
+		  
+
+
+
+ // for( obj = it.First(); obj; obj = it.Next() )
+ // {
+ //   // Ignore objects that are not hidden
+ //   if( obj->Attributes().m_name== uuid_str)
+ //     continue;
+	//CRhinoObjRef ref(obj);
+ //   // Ignore objects on hidden or locked layers
+ //   /*if( ON::normal_layer != obj->ObjectLayer().Mode() )
+ //     continue;*/
+ //   if( doc.ShowObject(obj) )
+	//{
+	//	count++;
+	//	rc = true;
+	//
+	//	if (count >1)
+	//	::RhinoApp().Print( L"THERE ARE MORE OBJETC WITH THIS NAME");
+	//}
+  };
+
+
+  //if( uuid_str && uuid_str[0] )
+    
+//  on_uuid prova = on_uuidfromstring(uuid_str);
+   
+  //const crhinoobject* object = doc.lookupobject( prova );
+  
+  
+  return rc;
+}
 
 static bool SetNametoObject( CRhinoDoc& doc,unsigned int first_sn, ON_wString  name, bool bRedraw )
 {
@@ -1309,9 +1377,11 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 //const wchar_t* szName = gs1.String();
 
 CTestUserData* ud = CTestUserData::Cast( obj_attribs9.GetUserData(ud->Id()) );
-
-	  //SelectObjectByUuid_S(context.m_doc,obj_attribs9.m_name,true);
-	  SelectObjectByUuid(context.m_doc,obj_attribs9.m_uuid,true);
+ON_wString obj_name = L"ugello22";
+	  
+selectobjectbyuuid_s(context.m_doc,obj_name,true);
+	  
+//SelectObjectByUuid(context.m_doc,obj_attribs9.m_uuid,true);
 
 
 
