@@ -10,7 +10,7 @@
 #include "atlstr.h"
 #include "TestUserData.h"
 
-// && object->IsSelectable()
+
 ON_UUID pvcurva;
 ON_3dPoint AltezzaTacco;
 static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID  uuid, bool bRedraw )
@@ -19,7 +19,7 @@ static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID  uuid, bool bRedraw )
   const CRhinoObject* object = doc.LookupObject( uuid );
   if( object  )
   {
-    object->Select( true );
+    object->Select( true ); // && object->IsSelectable()
     if( bRedraw )
       doc.Redraw();
     rc = true;
@@ -30,86 +30,39 @@ static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID  uuid, bool bRedraw )
 static bool selectobjectbyuuid_s( CRhinoDoc& doc, const wchar_t* uuid_str, bool bredraw )
 {
   bool rc = false;
-    /*CRhinoObjectIterator it(
-        doc,
-        CRhinoObjectIterator::undeleted_objects,
-        CRhinoObjectIterator::active_and_reference_objects
-        );
-  it.IncludeLights();
- 
-  int count = 0;
-  CRhinoObject* obj = 0;*/
-
    CRhinoLayerTable& layer_table = doc.m_layer_table;
-	  
-
-
 	  ON_Layer currentLayer;
-  
 		  const CRhinoLayer& current_layer = layer_table.CurrentLayer();
-
 		  int layer_index = layer_table.CurrentLayerIndex();
 		  const CRhinoLayer& layer2 = layer_table[layer_index];
-
 		  ON_SimpleArray<CRhinoObject*> obj_list;
 		  int j, obj_count = doc.LookupObject( layer2, obj_list );
 		  for( j = 0; j < obj_count; j++ )
 		  {
-				  CRhinoObject* obj = obj_list[j];
-					ON_wString prova55 =	obj->Attributes().m_name;
-				 if( obj->Attributes().m_name!= uuid_str)
-				 {::RhinoApp().Print( L"nome oggetto non trovato");}
+			  CRhinoObject* obj = obj_list[j];
+			  ON_wString prova55 =	obj->Attributes().m_name;
+				 if ( obj->Attributes().m_name!= uuid_str)
+				 {
+					 ::RhinoApp().Print( L"nome oggetto non trovato");
+				 }
 				 else
-					 {::RhinoApp().Print( L"trovato");
-				 
-				 rc = true;}
-
-				
+				 {
+						 ::RhinoApp().Print( L"trovato");
+						 rc = true;
+				 }
 				CRhinoObjRef ref(obj);
 				if( obj  ) //&& object->isselectable()
-  {
-    obj->Select( true );
-    if( bredraw )
-      doc.Redraw();
-  }
+				{
+					obj->Select( true );
+					if( bredraw )
+						doc.Redraw();
+				}
 				  if( obj_count )
 				  {
-					
-					
 					if (obj_count >1)
 					::RhinoApp().Print( L"THERE ARE MORE OBJETC");
-					}
-		  
-
-
-
- // for( obj = it.First(); obj; obj = it.Next() )
- // {
- //   // Ignore objects that are not hidden
- //   if( obj->Attributes().m_name== uuid_str)
- //     continue;
-	//CRhinoObjRef ref(obj);
- //   // Ignore objects on hidden or locked layers
- //   /*if( ON::normal_layer != obj->ObjectLayer().Mode() )
- //     continue;*/
- //   if( doc.ShowObject(obj) )
-	//{
-	//	count++;
-	//	rc = true;
-	//
-	//	if (count >1)
-	//	::RhinoApp().Print( L"THERE ARE MORE OBJETC WITH THIS NAME");
-	//}
+				  }
   };
-
-
-  //if( uuid_str && uuid_str[0] )
-    
-//  on_uuid prova = on_uuidfromstring(uuid_str);
-   
-  //const crhinoobject* object = doc.lookupobject( prova );
-  
-  
   return rc;
 }
 
@@ -354,40 +307,6 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 			context.m_doc.ReplaceObject(objref, *crv0 );
             context.m_doc.Redraw();
 
-			///// begin prova memorizzazione id o name linea pv
-		////ON_UUID uuid1 = gc->Attributes().m_uuid;
-		////	ON_UUID uuid1 = objref.ObjectUuid();
-		//	//ON_UuidToString( uuid1, cvrPrima );
-		//	 const CRhinoObject* obj5 = objref.Object();
-  //          ON_UUID uuid1 = obj5->Attributes().m_uuid;
-
-		//	pvcurva =  uuid1;
-		//	ON_3dmObjectAttributes obj_attribs = obj5->Attributes();
-		//	CRhinoGetString gs;
-  //gs.SetCommandPrompt( L"New object name" );
-  //gs.SetDefaultString( obj_attribs.m_name );
-  //gs.AcceptNothing( TRUE );
-  //gs.GetString();
-  //if( gs.CommandResult() != CRhinoCommand::success )
-  //  return gs.CommandResult();
- 
-  //// Get the string entered by the user
-  //ON_wString obj_name = gs.String();
-  //obj_name.TrimLeftAndRight();
- 
-  //// Is name the same?
-  //if( obj_name.Compare(obj_attribs.m_name) == 0 )
-  //  return CRhinoCommand::nothing;
-
-		//	//ON_wString obj_name = (L"stringanome");
-		//	obj_attribs.m_name = obj_name;
-		//	context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
-
-///// end prova memorizzazione id o name linea pv
-
-
-
-			
 			ON_3dPoint p0 = crv0->PointAtStart();
             ON_3dPoint p1 = crv0->PointAtEnd();
  
@@ -541,56 +460,28 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 			delete crv0;
 			crv0 = 0;
 
-			
-			// code temp
-// aniello begin
-// Get the next runtime object serial number after scripting
-  unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
-
- 
-  // Enable redrawing
-  //CRhinoView::EnableDrawing( TRUE );
- 
-  // if the two are the same, then nothing happened
- /* if( first_sn == next_sn )
-    //return CRhinoCommand::nothing;
-	return;
-*/ //commento questo per far compilare :-)
- 
-  // The the pointers of all of the objects that were added during scripting
-  ON_SimpleArray<const CRhinoObject*> objects;
-  for( unsigned int sn = first_sn; sn < next_sn; sn++ )
-  {
-    const CRhinoObject* obj = context.m_doc.LookupObjectByRuntimeSerialNumber( sn );
-    if( obj && !obj->IsDeleted() )
-      objects.Append( obj );
-  }
- 
-  /*
-  // Sort and cull the list, as there may be duplicates
-  if( objects.Count() > 1 )
-  {
-    objects.HeapSort( CompareObjectPtr );
-    const CRhinoObject* last_obj = objects[objects.Count()-1];
-    for( int i = objects.Count()-2; i >= 0; i-- )
-    {
-      const CRhinoObject* prev_obj = objects[i];
-     if( last_obj == prev_obj )
-        objects.Remove(i);
-      else
-        last_obj = prev_obj;
-    }
-  }
-	*/
-  // Do something with the list...
-  for( int i = 0; i < objects.Count(); i++ )
-  {
-    const CRhinoObject* obj = objects[i];
-    if( obj->IsSelectable(true) )
-      obj->Select( true );
-  }
-//aniello end
-			//end code temp
+				// aniello begin
+				// Get the next runtime object serial number after scripting
+				  unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+				 
+				  // The the pointers of all of the objects that were added during scripting
+				  ON_SimpleArray<const CRhinoObject*> objects;
+				  for( unsigned int sn = first_sn; sn < next_sn; sn++ )
+				  {
+					const CRhinoObject* obj = context.m_doc.LookupObjectByRuntimeSerialNumber( sn );
+					if( obj && !obj->IsDeleted() )
+					  objects.Append( obj );
+				  }
+				 
+				  
+				  // Do something with the list...
+				  for( int i = 0; i < objects.Count(); i++ )
+				  {
+					const CRhinoObject* obj = objects[i];
+					if( obj->IsSelectable(true) )
+					  obj->Select( true );
+				  }
+				//aniello end
 
   			/*********************/
 			/*JOIN LINES TOGETHER*/
@@ -1012,50 +903,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				  }
 				 
 				  const CRhinoObjRef& split_ref = go.Object(0);
-				  //prova nello stringa oggetto
-
-					/*CRhinoGetObject go7;
-  go7.SetCommandPrompt( L"Select object to change name" );
-  go7.EnablePreSelect( TRUE );
-  go7.EnableSubObjectSelect( FALSE );
-  go7.GetObjects( 1, 1 );
-  if( go7.CommandResult() != CRhinoCommand::success )
-    return go.CommandResult();*/
- 
-  // Get the object reference
-  const CRhinoObjRef& objref = go.Object(0);
- 
-  // Get the object
-  const CRhinoObject* obj = objref.Object();
-  if( !obj )
-    return CRhinoCommand::failure;
- 
-  // Make copy of object attributes. This objects
-  // holds an object's user-defined name.
-  ON_3dmObjectAttributes obj_attribs = obj->Attributes();
- 
-  // Prompt for new object name
-  /*CRhinoGetString gs;
-  gs.SetCommandPrompt( L"New object name" );
-  gs.SetDefaultString( obj_attribs.m_name );
-  gs.AcceptNothing( TRUE );
-  gs.GetString();
-  if( gs.CommandResult() != CRhinoCommand::success )
-    return gs.CommandResult();*/
- 
-  // Get the string entered by the user
-  //ON_wString obj_name = gs.String();
-  ON_wString obj_name = L"cilindro1";
-  //obj_name.TrimLeftAndRight();
- 
-  // Is name the same?
- /* if( obj_name.Compare(obj_attribs.m_name) == 0 )
-    return CRhinoCommand::nothing;*/
- 
-  // Modify the attributes of the object
-  obj_attribs.m_name = obj_name;
-  context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
-				  //end nello
+				  
 				 
 				  const CRhinoObject* split_object = split_ref.Object();
 				  if( !split_object )
@@ -1098,7 +946,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				  }
 				 
 				  int i, count = pieces.Count();
-				  if( count == 0 | count == 1 )
+				  if( (count == 0) | (count == 1) )
 				  {
 					if( count == 1 )
 					{
@@ -1389,57 +1237,6 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 		/*GET A REFERENCE TO THE LAYER TABLE*/
 	  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
 	  
-	  CRhinoGetObject go9;
-  go9.SetCommandPrompt( L"Select object to change name" );
-  go9.EnablePreSelect( TRUE );
-  go9.EnableSubObjectSelect( FALSE );
-  go9.GetObjects( 1, 1 );
-  if( go9.CommandResult() != CRhinoCommand::success )
-    return go9.CommandResult();
- 
-  // Get the object reference
-  const CRhinoObjRef& objref9 = go9.Object(0);
- 
-  // Get the object
-  const CRhinoObject* obj9 = objref9.Object();
-   obj9->Select( false );
-  if( !obj9 )
-    return CRhinoCommand::failure;
- 
-  // Make copy of object attributes. This objects
-  // holds an object's user-defined name.
-  ON_3dmObjectAttributes obj_attribs9 = obj9->Attributes();
-	
-	    //Prompt for new object name
-  CRhinoGetString gs1;
-  
-  //gs1.SetDefaultString(
-  /*gs1.SetCommandPrompt( L"New object name" );
-  gs1.SetDefaultString( obj_attribs9.m_name );
-  gs1.AcceptNothing( TRUE );
-  gs1.GetString();
-  if( gs1.CommandResult() != CRhinoCommand::success )
-    return gs1.CommandResult();*/
-
- 
- 
-  // Get the string entered by the user
-//  ON_wString obj_name1 = gs1.String();
-//  //obj_name.TrimLeftAndRight();
-////const wchar_t* prova5 = new(L"testo");  
-//  //wchar_t name( L"testo" ); 
-//const wchar_t* szName = gs1.String();
-
-CTestUserData* ud = CTestUserData::Cast( obj_attribs9.GetUserData(ud->Id()) );
-ON_wString obj_name = L"ugello22";
-	  
-selectobjectbyuuid_s(context.m_doc,obj_name,true);
-	  
-//SelectObjectByUuid(context.m_doc,obj_attribs9.m_uuid,true);
-
-
-
-
 	  //begin calcolo il punto di intersezione per disegnare l'ugello
 	  double valore_ugello =(_wtof(plugin.m_dialog->ValIniezioneDisassamento));
 	  ON_3dPoint inizio_linea (valore_ugello,0,0);
@@ -1495,7 +1292,7 @@ selectobjectbyuuid_s(context.m_doc,obj_name,true);
   const ON_Curve* curveA = go.Object(0).Curve();
   const ON_Curve* curveB = crv3;//go.Object(1).Curve();
 	 
-  if( 0 == curveA | 0 == curveB )
+  if( (0 == curveA) | (0 == curveB) )
     return CRhinoCommand::failure;
  
   // Calculate the intersection
@@ -1646,83 +1443,7 @@ selectobjectbyuuid_s(context.m_doc,obj_name,true);
 	  ON_wString obj_name = L"ugello";
 	  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
   }
-
-
-//////
-
-  // CRhinoGetObject go;
-  //go.SetCommandPrompt( L"Select edge of surface to extend" );
-  //go.SetGeometryFilter(CRhinoGetObject::edge_object);
-  //go.SetGeometryAttributeFilter( CRhinoGetObject::edge_curve );
-  //go.GetObjects( 1, 1 );
-  //if( go.CommandResult() != CRhinoCommand::success )
-  //  return go.CommandResult();
- 
-  //const CRhinoObjRef& objref = go.Object(0);
-  //const ON_Surface* srf = objref.Surface();
-  //if( !srf )
-  //{
-  //  RhinoApp().Print( L"Unable to extend polysurfaces.\n" );
-  //  return CRhinoCommand::nothing;    
-  //}
- 
-  //const ON_Brep* brep = objref.Brep();
-  //const ON_BrepFace* face = objref.Face();
-  //if( !brep | !face | face->m_face_index < 0 )
-  //  return CRhinoCommand::failure;
- 
-  //if( !brep->IsSurface() )
-  //{
-  //  RhinoApp().Print( L"Unable to extend trimmed surfaces.\n" );
-  //  return CRhinoCommand::nothing;    
-  //}
- 
-  //const ON_BrepTrim* trim = objref.Trim();
-  //if( !trim )
-  //  return CRhinoCommand::failure;
- 
-  //ON_Surface::ISO edge_index( trim->m_iso );
-  //int dir = edge_index % 2;
-  //if( srf->IsClosed(1-dir) )
-  //{
-  //  RhinoApp().Print(L"Unable to extend surface at seam.\n" );
-  //  return CRhinoCommand::nothing;  
-  //}
-  //if( edge_index < ON_Surface::W_iso | edge_index > ON_Surface::N_iso )
-  //{
-  //  RhinoApp().Print( L"Selected edge must be an underlying surface edge.\n" );
-  //  return CRhinoCommand::nothing;  
-  //}
- 
-  //ON_Surface* myface = srf->DuplicateSurface();
-  //if( !myface )
-  //  return CRhinoCommand::failure;
- 
-  //bool rc = RhinoExtendSurface( myface, edge_index, 5.0, true);  
-  //if( rc )
-  //{
-  //  ON_Brep* mybrep = new ON_Brep();
-  //  mybrep->Create( myface );
-  //  CRhinoBrepObject* obj = new CRhinoBrepObject();
-  //  obj->SetBrep( mybrep );
-  //  context.m_doc.ReplaceObject( CRhinoObjRef(objref.Object()), obj );
-  //  context.m_doc.Redraw();
-  //}
-
-
-/////////
-
-
-
-
-
-
-
 return CRhinoCommand::success;
-
-
-
-	  
 }
 
 
