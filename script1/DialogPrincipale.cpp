@@ -294,7 +294,6 @@ void DialogPrincipale::OnBnClickedButton5()
 {
 	//RhinoApp().RunScript( L"! _TCone", 0 );
 	RhinoApp().RunScript( L"! _GenUgello", 0 );
-	
 	//RhinoApp().EnterCommand
 	//RhinoApp().ExecuteCommand
 	//RhinoApp().
