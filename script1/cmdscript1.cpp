@@ -872,12 +872,52 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			  int cylindIndex = -1;
 			  int surfPVIndex = -1;
 			  int surfFOIndex = -1;
+			  int countCylnds = 0;
+			  int countCutter = 0;
 
 		    /******************************/
 			/*TRY TO FIND CUTTERS SURFACES*/
 			/******************************/
-			for(int i = 0; i < object_count; i++)
+			bool myBreak = false;
+			int countCut = 0;
+			while(countCut < 2)
 			{
+				countCylnds = 0;
+				countCutter = 0;
+				objects.Empty();
+				object_count = context.m_doc.LookupObject( context.m_doc.m_layer_table.CurrentLayer(), objects );
+				for(int i = 0; i < object_count; i++)
+				{
+				  object = objects[ i ];
+				  /*MAKE COPY OF OBJECT ATTRIBUTES. THIS OBJECTS*/ 
+				  /*HOLDS AN OBJECT'S USER-DEFINED NAME.*/ 
+				  ON_3dmObjectAttributes obj_attribs = object->Attributes();
+				  name = object->Attributes().m_name;
+				  brep_obj = CRhinoBrepObject::Cast( object );
+  				  surface_obj = CRhinoSurfaceObject::Cast( object );
+				  if( surface_obj && !name.Compare("SURFTOP"))
+				  {
+					countCutter++;
+				  }/*CHIUSURA IF SUPERFICIE*/
+
+				  if( surface_obj && !name.Compare("SURFBOT"))
+				  {
+					countCutter++;
+				  }/*CHIUSURA IF SUPERFICIE*/
+
+
+				  if( brep_obj && !name.Compare("CILINDRO") )//brep_obj->IsSolid()
+				  {
+					  countCylnds++;
+				  }/*CHIUSURA IF CILINDRO*/
+					
+				}
+				int *cylinders = new int[countCylnds];
+				int *cutters   = new int[countCutter];
+				countCylnds = 0;
+				countCutter = 0;
+				for(int i = 0; i < object_count; i++)
+				{
 				  object = objects[ i ];
 
 				  /*MAKE COPY OF OBJECT ATTRIBUTES. THIS OBJECTS*/ 
@@ -889,120 +929,97 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				  brep_obj = CRhinoBrepObject::Cast( object );
 				  if( surface_obj && !name.Compare("SURFTOP"))
 				  {
-					surfPVIndex = i;
+					  cutters[countCutter] = i;
+					  countCutter++;
 				  }/*CHIUSURA IF SUPERFICIE*/
 
 				  if( surface_obj && !name.Compare("SURFBOT"))
 				  {
-					surfFOIndex = i;
+					  cutters[countCutter] = i;
+					  countCutter++;
 				  }/*CHIUSURA IF SUPERFICIE*/
 
-				  if( brep_obj && brep_obj->IsSolid() )
+				  if( brep_obj && !name.Compare("CILINDRO") )//brep_obj->IsSolid()
 				  {
-					  cylindIndex = i;
+					  cylinders[countCylnds] = i;
+					  countCylnds++;
 				  }/*CHIUSURA IF CILINDRO*/
-			}
-			if((surfPVIndex != -1) && (surfFOIndex != -1) && (cylindIndex != -1))
-			{
-				const CRhinoObjRef& split_ref = objects[ cylindIndex ];
-				const ON_Brep* split = split_ref.Brep();
-				if( !split )
-				{
-					return failure;
-				}
-				ON_SimpleArray<ON_Brep*> pieces;
-				double tol = context.m_doc.AbsoluteTolerance();
-				const CRhinoObjRef& cutterTop_ref = objects[ surfPVIndex ];
-				const ON_Brep* cutter = cutterTop_ref.Brep();
-				if( !cutter )
-				{
-					return failure;
-				}
+				}/*CHIUSURA LOOP SUGLI OGGETTI*/
 
-				if( !RhinoBrepSplit(*split, *cutter, tol, pieces) )
+				for(int i = 0; i < countCylnds; i++)
 				{
-					RhinoApp().Print( L"UNABLE TO SPLIT BREP.\n" );
-				}
-				int i, count = pieces.Count();
-				if( (count == 0) | (count == 1) )
-				{
-					if( count == 1 )
+					for(int j = 0; j < countCutter; j++)
 					{
-						delete pieces[0];
-					}
-					return nothing;
-				}
 
-				CRhinoObjectAttributes attrib = objects[ cylindIndex ]->Attributes();
-				attrib.m_uuid = ON_nil_uuid; 
-
-				const CRhinoObjectVisualAnalysisMode* vam_list = objects[ cylindIndex ]->m_analysis_mode_list;
-
-				for( i = 0; i < count; i++ )
-				{
-					CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
-					if( brep_object )
-					{
-						brep_object->SetBrep( pieces[i] );
-						if( context.m_doc.AddObject(brep_object) )
+						myBreak = false;
+						const CRhinoObjRef& split_ref = objects[ cylinders[i] ];
+						const ON_Brep* split = split_ref.Brep();
+						if( !split )
 						{
-							RhinoCopyAnalysisModes( vam_list, brep_object );
+							RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(1)!\n" );
+							return failure;
+						}
+						ON_SimpleArray<ON_Brep*> pieces;
+						pieces.Empty();
+						double tol = context.m_doc.AbsoluteTolerance();
+						const CRhinoObjRef& cutterTop_ref = objects[ cutters[j] ];
+						const ON_Brep* cutter = cutterTop_ref.Brep();
+						if( !cutter )
+						{
+							RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(2)!\n" );
+							return failure;
+						}
+						if( !RhinoBrepSplit(*split, *cutter, tol, pieces) )
+						{
+							RhinoApp().Print( L"UNABLE TO SPLIT BREP.\n" );
 						}
 						else
 						{
-							delete brep_object;
+							countCut++;
+							myBreak = true;
 						}
-					}
-				}
-				//ON_SimpleArray<ON_Brep*> pieces2;
-				//for(int i = 0; i < count; i++ )
-				//{
-				//	CRhinoObject* object = CRhinoObject::Cast(pieces[i]);
-				//	const CRhinoObjRef& cutterTop_ref = objects[ surfFOIndex ];
-				//	const ON_Brep* cutter = cutterTop_ref.Brep();
-				//	if( !cutter )
-				//	{
-				//		return failure;
-				//	}
+						int count = pieces.Count();
+						if( (count == 0) | (count == 1) )
+						{
+							if( count == 1 )
+							{
+								delete pieces[0];
+								continue;
+							}
+							RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(3)!\n" );
+							continue;
+						}
+						CRhinoObjectAttributes attrib = objects[ cylinders[i] ]->Attributes();
+						attrib.m_uuid = ON_nil_uuid;
+						const CRhinoObjectVisualAnalysisMode* vam_list = objects[ cylinders[i] ]->m_analysis_mode_list;
+						for( int k = 0; k < count; k++ )
+						{
+							CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
+							if( brep_object )
+							{
+								brep_object->SetBrep( pieces[k] );
+								if( context.m_doc.AddObject(brep_object) )
+								{
+									RhinoCopyAnalysisModes( vam_list, brep_object );
+								}
+								else
+								{
+									delete brep_object;
+								}
+							}
+						}
+						context.m_doc.DeleteObject( split_ref ); 
+						context.m_doc.Redraw();
 
-				//	if( RhinoBrepSplit(*pieces[i], *cutter, tol, pieces2) )
-				//	{
-				//		int count = pieces2.Count();
-				//		CRhinoObjectAttributes attrib = object->Attributes();//objects[ cylindIndex ]->Attributes();
-				//		attrib.m_uuid = ON_nil_uuid; 
-
-				//		const CRhinoObjectVisualAnalysisMode* vam_list = object->m_analysis_mode_list;//objects[ cylindIndex ]->m_analysis_mode_list;
-
-				//		for( i = 0; i < count; i++ )
-				//		{
-				//			CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
-				//			if( brep_object )
-				//			{
-				//				brep_object->SetBrep( pieces2[i] );
-				//				if( context.m_doc.AddObject(brep_object) )
-				//				{
-				//					RhinoCopyAnalysisModes( vam_list, brep_object );
-				//				}
-				//				else
-				//				{
-				//					delete brep_object;
-				//				}
-				//			}
-				//		}						
-				//	}/*CHIUSURA IF RHINOBREPSPLIT*/
-				//	else
-				//	{
-				//		RhinoApp().Print( L"UNABLE TO SPLIT BREP.\n" );
-				//	}
-				//}
-				context.m_doc.DeleteObject( split_ref ); 
-				context.m_doc.Redraw();
-			}/*CHIUSURA IF CHECK (surfPVIndex != -1) && (surfFOIndex != -1) && (cylindIndex != -1)*/
-			else
-			{
-				return CRhinoCommand::nothing;
-			}
-
+						if(myBreak == true)
+						{
+							break;
+						}
+					}/*CHIUSURA LOOP COUNTCUTTER*/
+				}/*CHIUSURA LOOP COUNTCYLNDS*/
+				delete cylinders;
+				delete cutters; 
+			}/*CHIUSURA WHILE*/
 
 			  /********************/
 			  /*CREATE A NEW LAYER*/
@@ -1038,6 +1055,95 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			  layer_index = context.m_doc.m_layer_table.AddLayer( layer );
 	  
 			  context.m_doc.Redraw();
+
+			  countCylnds = 0;
+			  objects.Empty();
+			  object_count = context.m_doc.LookupObject( context.m_doc.m_layer_table.CurrentLayer(), objects );
+			  for(int i = 0; i < object_count; i++)
+			  {
+			    object = objects[ i ];
+
+			    /*MAKE COPY OF OBJECT ATTRIBUTES. THIS OBJECTS*/ 
+			    /*HOLDS AN OBJECT'S USER-DEFINED NAME.*/ 
+			    ON_3dmObjectAttributes obj_attribs = object->Attributes();
+			    name = object->Attributes().m_name;
+			    brep_obj = CRhinoBrepObject::Cast( object );
+
+			    if( brep_obj && !name.Compare("CILINDRO") )//brep_obj->IsSolid()
+			    {
+				   countCylnds++;
+			    }/*CHIUSURA IF CILINDRO*/
+			  }/*CHIUSURA LOOP SUGLI OGGETTI*/
+			  int *cylinders = new int[countCylnds];
+			  countCylnds = 0;
+			  for(int i = 0; i < object_count; i++)
+			  {
+			    object = objects[ i ];
+
+			    /*MAKE COPY OF OBJECT ATTRIBUTES. THIS OBJECTS*/ 
+			    /*HOLDS AN OBJECT'S USER-DEFINED NAME.*/ 
+			    ON_3dmObjectAttributes obj_attribs = object->Attributes();
+			    name = object->Attributes().m_name;
+			    brep_obj = CRhinoBrepObject::Cast( object );
+
+			    if( brep_obj && !name.Compare("CILINDRO") )//brep_obj->IsSolid()
+			    {
+				    cylinders[countCylnds] = i;
+				    countCylnds++;
+			    }/*CHIUSURA IF CILINDRO*/
+			  }/*CHIUSURA LOOP SUGLI OGGETTI*/
+
+			  ON_SimpleArray<const ON_Geometry*> geom( countCylnds );
+			  for( int i = 0; i < countCylnds; i++ ) 
+			  {
+				const ON_Geometry* geo = objects[ cylinders[i] ]->Geometry();
+				if( 0 == geo )
+				{
+				  return failure;
+				}
+				geom.Append( geo );
+			  }
+			  /*GET BOUNDING BOX OF ALL OBJECTS*/ 
+			  ON_BoundingBox bbox;
+			  for(int i = 0; i < countCylnds; i++ )
+			  {
+				geom[i]->GetBoundingBox( bbox, bbox.IsValid() );
+			  }
+			 
+			  ON_3dPoint base_point = bbox.Center();
+			  ON_SimpleArray<ON_MassProperties> MassProp;
+			  MassProp.Reserve( geom.Count() );
+			  for(int i = 0; i < countCylnds; i++ )
+			  {
+				ON_MassProperties* mp = &MassProp.AppendNew();			 
+				const ON_Brep* brep = ON_Brep::Cast(geom[i]);
+				/*if( brep )
+				{
+				  brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
+				  objects[ cylinders[i] ]->Highlight(true);
+				  context.m_doc.Redraw();
+				  ON_3dPoint point;
+				  point = MassProp.At(i)->Centroid();
+				  RhinoApp().Print( L"VOLUME CENTROID OBJECT %i = %g,%g,%g\n", (i+1), point.x, point.y, point.z);
+				  RhinoApp().Wait(DWORD(1000) );
+				  objects[ cylinders[i] ]->Highlight(false);
+				  context.m_doc.Redraw();
+				}*/
+
+
+			 
+				//if( const ON_Surface* srf = ON_Surface::Cast(geom[i]) )
+				//{
+				//  srf->VolumeMassProperties( *mp, true, true, false, false, base_point );       
+				//}			 
+				//else if( const ON_Brep* brep = ON_Brep::Cast(geom[i]) )
+				//{
+				//  brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
+				//}
+			  }
+			  
+			  return CRhinoCommand::success;
+
 			/*********************************************************/
 			}
 		}/*CLOSED IF OVER CHECKING BREP COUNT OBJECT*/
