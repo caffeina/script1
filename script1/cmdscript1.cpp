@@ -1113,35 +1113,62 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			  ON_3dPoint base_point = bbox.Center();
 			  ON_SimpleArray<ON_MassProperties> MassProp;
 			  MassProp.Reserve( geom.Count() );
-			  for(int i = 0; i < countCylnds; i++ )
+			  ON_3dPoint maxPoint[3];
+			  maxPoint[0].Zero();
+			  maxPoint[1].Zero();
+			  maxPoint[2].Zero();
+
+			  for(int i = 0; i < geom.Count(); i++ )
 			  {
 				ON_MassProperties* mp = &MassProp.AppendNew();			 
 				const ON_Brep* brep = ON_Brep::Cast(geom[i]);
-				/*if( brep )
+				if( brep )
 				{
 				  brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
-				  objects[ cylinders[i] ]->Highlight(true);
-				  context.m_doc.Redraw();
-				  ON_3dPoint point;
-				  point = MassProp.At(i)->Centroid();
-				  RhinoApp().Print( L"VOLUME CENTROID OBJECT %i = %g,%g,%g\n", (i+1), point.x, point.y, point.z);
-				  RhinoApp().Wait(DWORD(1000) );
-				  objects[ cylinders[i] ]->Highlight(false);
-				  context.m_doc.Redraw();
-				}*/
-
-
-			 
-				//if( const ON_Surface* srf = ON_Surface::Cast(geom[i]) )
-				//{
-				//  srf->VolumeMassProperties( *mp, true, true, false, false, base_point );       
-				//}			 
-				//else if( const ON_Brep* brep = ON_Brep::Cast(geom[i]) )
-				//{
-				//  brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
-				//}
+				  maxPoint[i] = MassProp.At(i)->Centroid();
+				}
 			  }
-			  
+			  /****************************/
+			  /*BUBBLE SORT IMPLEMENTATION*/
+			  /****************************/
+			  int intTmp = 0;
+			  ON_3dPoint tmp;
+			  tmp.Zero();
+			  for(int alto = 2; alto > 0; alto-- )
+			  {
+				for (int i=0; i<alto; i++)
+				{
+				   if (maxPoint[i].z < maxPoint[i+1].z) /* sostituire ">" con "<" per avere un ordinamento decrescente */
+				   { 
+					 tmp = maxPoint[i]; 
+					 maxPoint[i] = maxPoint[i+1]; 
+					 maxPoint[i+1] = tmp;
+				   }
+				   if(cylinders[i] < cylinders[i+1])
+				   {
+					 intTmp = cylinders[i]; 
+					 cylinders[i] = cylinders[i+1]; 
+					 cylinders[i+1] = intTmp;
+				   }
+				}	
+			  }
+			  /****************/
+			  /*FIND THE LAYER*/
+			  /****************/
+			  int Cyl_layer_index[3] = {context.m_doc.m_layer_table.FindLayer(L"FISSO"), 
+				                        context.m_doc.m_layer_table.FindLayer(L"MATRICE"), 
+										context.m_doc.m_layer_table.FindLayer(L"FONDELLO")};
+
+
+			  for(int i = 0; i < 3; i++)
+			  {
+				  CRhinoObjectAttributes atts( objects[ cylinders[i] ]->Attributes() );
+				  atts.m_layer_index = Cyl_layer_index[i];
+				  CRhinoObjRef ref(objects[ cylinders[i] ]);
+				  context.m_doc.ModifyObjectAttributes(ref, atts);
+
+			  }
+			  context.m_doc.Redraw();
 			  return CRhinoCommand::success;
 
 			/*********************************************************/

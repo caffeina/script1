@@ -126,7 +126,8 @@ void DialogPrincipale::OnEnChangeEdit2()
 
 void DialogPrincipale::KillDialog()
 {
-  OnCancel();
+  //OnCancel();
+	RhinoApp().CommandCanceled();
 }
 void DialogPrincipale::OnBnClickedOk()
 {
@@ -167,7 +168,7 @@ void DialogPrincipale::OnBnClickedRadio1()
 	StatusRadio4_Iniezione_Disassata = 0;
 	StatusRadio3_Iniezione_Centrale = -1;
 	GetDlgItem(IDC_RADIO3)->EnableWindow(FALSE);
-
+	GetDlgItem(IDC_EDIT5)->EnableWindow(FALSE);
 	UpdateData (FALSE);
 	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
 }
@@ -188,6 +189,7 @@ void DialogPrincipale::OnBnClickedRadio2()
 	StatusRadio4_Iniezione_Disassata = -1;
 	StatusRadio3_Iniezione_Centrale = 0;
 	GetDlgItem(IDC_RADIO3)->EnableWindow(TRUE);
+	GetDlgItem(IDC_EDIT5)->EnableWindow(TRUE);
 	UpdateData (FALSE);
 
 	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
@@ -204,7 +206,6 @@ void DialogPrincipale::OnBnClickedRadio8()
 {
 	UpdateData (TRUE);
 	GetDlgItem(IDC_EDIT5)->EnableWindow(TRUE);
-	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
 }
 
 void DialogPrincipale::OnBnClickedCheck1()
