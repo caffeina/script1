@@ -230,6 +230,8 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
   /*GET THE LAYER NAME*/
   CRhinoGetString gs;
   gs.SetCommandPrompt( L"NAME OF LAYER WHICH CONTAINS VISIONAL PLANE : " );
+  gs.SetCommandPromptDefault(L"pv");
+  gs.SetDefaultString(L"pv");
   gs.GetString();
   if( gs.CommandResult() != CRhinoCommand::success )
   {
@@ -304,8 +306,8 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
             const ON_Curve* pC = ON_Curve::Cast( objref.Geometry() );
 			ON_Curve* crv0 = pC->DuplicateCurve();
 			
-			bool rc0 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 1, 5);
-			bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0, 15);
+			bool rc0 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 1, _wtof(plugin.m2_dialog->EstLineaDx));
+			bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0,_wtof(plugin.m2_dialog->EstLineaSx) );
 			context.m_doc.ReplaceObject(objref, *crv0 );
             context.m_doc.Redraw();
 
@@ -314,44 +316,44 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
  
 			CRhinoGetNumber gn;
 			//double default_value = 30;
-			gn.SetCommandPrompt( L"ENTER ANTERIOR ANGLE FOR EXTENSION in grad: " );
-			gn.SetCommandPromptDefault(L"30");
-			gn.SetDefaultNumber(30);
-			//gn.AcceptNothing(true);
-			gn.GetNumber();
-			double alphaAngle = gn.Number();
+			//gn.SetCommandPrompt( L"ENTER ANTERIOR ANGLE FOR EXTENSION in grad: " );
+			//gn.SetCommandPromptDefault(L"30");
+			//gn.SetDefaultNumber(30);
+			////gn.AcceptNothing(true);
+			//gn.GetNumber();
+			double alphaAngle = _wtof(plugin.m2_dialog->AngoloAlphaDx);//gn.Number();
 			
 			
 
-			gn.SetCommandPrompt( L"ENTER ANTERIOR LENGTH FOR EXTENSION in mm: " );
+			/*gn.SetCommandPrompt( L"ENTER ANTERIOR LENGTH FOR EXTENSION in mm: " );
 			gn.SetCommandPromptDefault(L"80");
 			gn.SetDefaultNumber(80);
-			gn.GetNumber();
-			double antLen = gn.Number();
+			gn.GetNumber();*/
+			double antLen = _wtof(plugin.m2_dialog->EstRettaPolilineaDx);// era gn.Number()
 
-			gn.SetCommandPrompt( L"ENTER ANTERIOR FILLET RADIUS in mm: " );
+			/*gn.SetCommandPrompt( L"ENTER ANTERIOR FILLET RADIUS in mm: " );
 			gn.SetCommandPromptDefault(L"6");
 			gn.SetDefaultNumber(6);
-			gn.GetNumber();
-			double antRad = gn.Number();
+			gn.GetNumber();*/
+			double antRad =  _wtof(plugin.m2_dialog->FilletDx);//gn.Number();
 
-			gn.SetCommandPrompt( L"ENTER POSTERIOR ANGLE FOR EXTENSION default <ALPHA + 10°= 40°> : " );
+			/*gn.SetCommandPrompt( L"ENTER POSTERIOR ANGLE FOR EXTENSION default <ALPHA + 10°= 40°> : " );
 			gn.SetCommandPromptDefault(L"40");
 			gn.SetDefaultNumber(40);
-			gn.GetNumber();
-			double betaAngle = gn.Number();
+			gn.GetNumber();*/
+			double betaAngle = _wtof(plugin.m2_dialog->AngoloBetaSx);//gn.Number();
 
-			gn.SetCommandPrompt( L"ENTER POSTERIOR LENGTH FOR EXTENSION in mm: " );
+			/*gn.SetCommandPrompt( L"ENTER POSTERIOR LENGTH FOR EXTENSION in mm: " );
 			gn.SetCommandPromptDefault(L"80");
 			gn.SetDefaultNumber(80);
-			gn.GetNumber();
-			double posLen = gn.Number();
+			gn.GetNumber();*/
+			double posLen = _wtof(plugin.m2_dialog->EstRettaPolilineaSx);//gn.Number()
 
-			gn.SetCommandPrompt( L"ENTER POSTERIOR FILLET RADIUS in mm: " );
+			/*gn.SetCommandPrompt( L"ENTER POSTERIOR FILLET RADIUS in mm: " );
 			gn.SetCommandPromptDefault(L"13");
 			gn.SetDefaultNumber(13);
-			gn.GetNumber();
-			double posRad = gn.Number();
+			gn.GetNumber();*/
+			double posRad = _wtof(plugin.m2_dialog->FilletSx);//gn.Number();
 
 		
 			ON_3dPoint pointStart;
