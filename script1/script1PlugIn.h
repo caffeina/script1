@@ -5,6 +5,7 @@
 #pragma once
 
 #include "DialogPrincipale.h"
+#include "DialogPV.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // Cscript1PlugIn
@@ -40,6 +41,16 @@ public:
   void ZeroDlg();
   void SetDlgPointValue( int item, const ON_3dPoint& pt );
 
+  // seconda finestra modeless
+  bool IsDlgCreated2();
+  bool IsDlgVisible2();
+  bool SetDlgVisible2();
+  bool SetDlgHidden2();
+  bool DisplayDlg2(); // tolto CRhinoDoc& m_doc
+  void DestroyDlg2();
+  void ZeroDlg2();
+  void SetDlgPointValue2( int item, const ON_3dPoint& pt );
+
   /*DEFINIZIONE PROPRIETÀ*/
   void setVarAltezzaTacco(CString);
   int  getVarAltezzaTacco(void);
@@ -47,6 +58,7 @@ public:
 public:
   ON_wString m_plugin_version;
   DialogPrincipale* m_dialog;
+  DialogPV* m2_dialog;
 
   // TODO: Add additional class information here
 };

@@ -1688,3 +1688,51 @@ CRhinoCommand::result CCommandNewName::RunCommand( const CRhinoCommandContext& c
 //
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//
+// BEGIN DialogPV command
+//
+
+class CCommandDialogPV : public CRhinoCommand
+{
+public:
+	CCommandDialogPV() {}
+	~CCommandDialogPV() {}
+	UUID CommandUUID()
+	{
+		// {A05939D1-66A1-480D-BAFD-213DE82F8CB8}
+		static const GUID DialogPVCommand_UUID =
+		{ 0xA05939D1, 0x66A1, 0x480D, { 0xBA, 0xFD, 0x21, 0x3D, 0xE8, 0x2F, 0x8C, 0xB8 } };
+		return DialogPVCommand_UUID;
+	}
+	const wchar_t* EnglishCommandName() { return L"DialogPV"; }
+	const wchar_t* LocalCommandName() { return L"DialogPV"; }
+	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
+};
+
+// The one and only CCommandDialogPV object
+static class CCommandDialogPV theDialogPVCommand;
+
+CRhinoCommand::result CCommandDialogPV::RunCommand( const CRhinoCommandContext& context )
+{
+	Cscript1PlugIn& plugin = script1PlugIn();
+
+  bool bVisible = plugin.IsDlgVisible2();
+
+  if( context.IsInteractive() )
+  {
+    if( false == bVisible )
+		plugin.DisplayDlg2(); // tolto come parametro context.m_doc
+  }
+
+	return CRhinoCommand::success;
+}
+
+//
+// END DialogPV command
+//
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////

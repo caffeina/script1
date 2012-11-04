@@ -14,6 +14,7 @@ public:
 
 // Dati della finestra di dialogo
 	enum { IDD = IDD_DIALOG2 };
+	void KillDialog();
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // Supporto DDX/DDV

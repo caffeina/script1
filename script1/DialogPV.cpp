@@ -30,3 +30,10 @@ END_MESSAGE_MAP()
 
 
 // gestori di messaggi DialogPV
+
+
+void DialogPV::KillDialog()
+{
+  //OnCancel();
+	RhinoApp().CommandCanceled();
+}

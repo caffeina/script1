@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "DialogPrincipale.h"
 #include "Resource.h"
+#include "DialogPV.h"
 
 
 // finestra di dialogo DialogPrincipale
@@ -75,6 +76,7 @@ BEGIN_MESSAGE_MAP(DialogPrincipale, CDialog)
 	ON_EN_CHANGE(IDC_EDIT4, &DialogPrincipale::OnEnChangeEdit4)
 	ON_EN_CHANGE(IDC_EDIT5, &DialogPrincipale::OnEnChangeEdit5)
 	ON_BN_CLICKED(IDC_BUTTON5, &DialogPrincipale::OnBnClickedButton5)
+	ON_BN_CLICKED(IDC_BUTTON6, &DialogPrincipale::OnBnClickedButton6)
 END_MESSAGE_MAP()
 
 
@@ -305,4 +307,13 @@ void DialogPrincipale::OnBnClickedButton5()
 
 
 
+}
+
+void DialogPrincipale::OnBnClickedButton6()
+{
+	 /*DialogPV dlg( CWnd::FromHandle(::RhinoApp().MainWnd()) );
+	 dlg.DoModal();*/
+	RhinoApp().RunScript( L"! _DialogPV", 0 );
+
+  
 }
