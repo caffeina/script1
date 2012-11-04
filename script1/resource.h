@@ -7,7 +7,9 @@
 #define IDC_COMBO2                      7002
 #define IDC_CHECK1                      7003
 #define IDP_OLE_INIT_FAILED             7003
+#define IDD_DIALOG2                     7004
 #define IDC_COMBO1                      7005
+#define IDB_BITMAP4                     7008
 #define IDC_SCROLLBAR1                  7009
 #define IDC_COMBO3                      7010
 #define IDC_EDIT2                       7011
@@ -31,14 +33,21 @@
 #define IDC_BUTTON3                     7035
 #define IDC_BUTTON4                     7036
 #define IDC_BUTTON5                     7037
+#define IDC_EDIT3                       7039
+#define IDC_EDIT7                       7040
+#define IDC_EDIT8                       7041
+#define IDC_EDIT9                       7042
+#define IDC_EDIT10                      7043
+#define IDC_EDIT11                      7044
+#define IDC_BUTTON6                     7045
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        7004
+#define _APS_NEXT_RESOURCE_VALUE        7009
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         7038
+#define _APS_NEXT_CONTROL_VALUE         7046
 #define _APS_NEXT_SYMED_VALUE           7000
 #endif
 #endif

@@ -79,7 +79,7 @@ BEGIN
     LTEXT           "Diametro dello stampo = 127 mm",IDC_STATIC,163,36,106,8
     LTEXT           "Altezza Fondello",IDC_STATIC,21,60,55,8
     COMBOBOX        IDC_CMBAltezzaFondello,94,57,101,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Genera Piano Visionale",IDC_BUTTON1,291,43,82,14
+    PUSHBUTTON      "Genera Piano Visionale",IDC_BUTTON1,291,65,82,14
     GROUPBOX        "",IDC_STATIC,7,92,220,207
     GROUPBOX        "Rotazione Traslazione Tacco",IDC_STATIC,243,155,130,144,BS_CENTER
     CTEXT           "Traslazione sull'asse X",IDC_STATIC,265,212,37,31
@@ -94,13 +94,14 @@ BEGIN
     CONTROL         "Fondello di alluminio",IDC_RADIO8,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | WS_TABSTOP,7,270,79,10
     LTEXT           "Valore del disassamento",IDC_STATIC,97,134,78,8,WS_DISABLED
     COMBOBOX        IDC_COMBO1,112,194,48,30,CBS_DROPDOWN | CBS_SORT | WS_DISABLED | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Genera Cilindro",IDC_BUTTON2,291,61,82,14
+    PUSHBUTTON      "Genera Cilindro",IDC_BUTTON2,291,84,82,14
     PUSHBUTTON      "Applica",IDC_BUTTON3,286,252,50,14
     PUSHBUTTON      "Annulla",IDC_BUTTON4,286,274,50,14
     EDITTEXT        IDC_EDIT5,314,177,40,14,ES_AUTOHSCROLL | WS_DISABLED
     EDITTEXT        IDC_EDIT4,313,215,40,14,ES_AUTOHSCROLL
     PUSHBUTTON      "Genera Ugello",IDC_BUTTON5,62,218,50,14
     GROUPBOX        "",IDC_STATIC,7,146,176,100
+    PUSHBUTTON      "Immisione valori PV",IDC_BUTTON6,303,46,70,14
 END
 
 
@@ -198,6 +199,49 @@ LANGUAGE LANG_ITALIAN, SUBLANG_ITALIAN
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Dialog
+//
+
+IDD_DIALOG2 DIALOGEX 0, 0, 350, 241
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,293,7,50,14
+    PUSHBUTTON      "Annulla",IDCANCEL,293,24,50,14
+    CONTROL         7008,IDC_STATIC,"Static",SS_BITMAP,18,68,310,149
+    EDITTEXT        IDC_EDIT2,172,83,28,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT3,135,95,28,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT6,279,176,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT7,18,92,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT8,246,138,36,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT9,45,139,23,10,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT10,189,155,26,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT11,121,185,26,13,ES_AUTOHSCROLL
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DIALOG2, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 343
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 234
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Version
 //
 
@@ -234,6 +278,13 @@ BEGIN
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BITMAP4             BITMAP                  "C:\\Users\\Nello\\Pictures\\pv.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
