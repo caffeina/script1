@@ -295,7 +295,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		 unsigned int first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
 	     //aniello end
 	     /////////////////////
-		  
+						// INIZIO PROVA ANNULLAMENTO 
 		 CRhinoGetObject gc;
 		 gc.SetCommandPrompt( L"SELECT LINE TO EXTEND" );
          gc.SetGeometryFilter( CRhinoGetObject::curve_object );

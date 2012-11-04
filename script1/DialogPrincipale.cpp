@@ -84,8 +84,8 @@ END_MESSAGE_MAP()
 
 void DialogPrincipale::OnBnClickedCancel()
 {
-	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
-	OnCancel();
+	//OnCancel();
+	RhinoApp().RunScript( L"! _Undo", 0 );
 }
 
 
