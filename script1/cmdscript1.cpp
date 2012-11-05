@@ -225,8 +225,10 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
   {
     return CRhinoCommand::nothing;
   }
-
-
+	/*CGenPianoVis* punth = new CGenPianoVis();
+	unsigned int undo_record_sn = context.m_doc.BeginUndoRecordEx(punth);*/
+   ON_SimpleArray<CRhUndoRecord* > UndoRec; 
+     context.m_doc.BeginUndoRecord(L"AC_CardBoard");
   /*GET THE LAYER NAME*/
   CRhinoGetString gs;
   gs.SetCommandPrompt( L"NAME OF LAYER WHICH CONTAINS VISIONAL PLANE : " );
@@ -293,6 +295,8 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
  
          // Get the next runtime object serial number before scripting
 		 unsigned int first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+		 
+		 
 	     //aniello end
 	     /////////////////////
 						// INIZIO PROVA ANNULLAMENTO 
@@ -539,6 +543,14 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	  }/*CHIUSURA IF( OBJECT_COUNT > 0 )*/
   }/*CHIUSURA ELSE*/
 
+  /*context.m_doc.EndUndoRecord(undo_record_sn);
+  context.m_doc.GetUndoRecords
+
+  context.m_doc.AddCustomUndoEvent*/
+   context.m_doc.EndUndoRecord();
+   context.m_doc.GetUndoRecords(UndoRec);
+   context.m_doc.Undo(*UndoRec.At(0));
+   context.m_doc.Redraw();
   return CRhinoCommand::success;
 }
 
