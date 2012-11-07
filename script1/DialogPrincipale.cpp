@@ -77,6 +77,7 @@ BEGIN_MESSAGE_MAP(DialogPrincipale, CDialog)
 	ON_EN_CHANGE(IDC_EDIT5, &DialogPrincipale::OnEnChangeEdit5)
 	ON_BN_CLICKED(IDC_BUTTON5, &DialogPrincipale::OnBnClickedButton5)
 	ON_BN_CLICKED(IDC_BUTTON6, &DialogPrincipale::OnBnClickedButton6)
+	ON_BN_CLICKED(IDC_BUTTON8, &DialogPrincipale::OnBnClickedButton8)
 END_MESSAGE_MAP()
 
 
@@ -84,8 +85,8 @@ END_MESSAGE_MAP()
 
 void DialogPrincipale::OnBnClickedCancel()
 {
-	//OnCancel();
-	RhinoApp().RunScript( L"! _Undo", 0 );
+	OnCancel();
+	//RhinoApp().RunScript( L"! _Undo", 0 );
 }
 
 
@@ -317,3 +318,10 @@ void DialogPrincipale::OnBnClickedButton6()
 
   
 }
+
+void DialogPrincipale::OnBnClickedButton8()
+{
+	RhinoApp().RunScript( L"! _TrimCylinder", 0);
+	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
+}
+
