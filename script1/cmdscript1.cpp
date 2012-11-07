@@ -1029,8 +1029,33 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 		}
 
 		/*GET A REFERENCE TO THE LAYER TABLE*/
+//const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
+//	ON_SimpleArray<CRhinoObject*> objects;
+//	int object_count = context.m_doc.LookupObject( layer, objects );
+		//
 	  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+	  const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
+			ON_SimpleArray<const ON_Curve*> lines;
+			ON_SimpleArray<CRhinoObject*> objectsLine;
+			
+			int LinesCount = context.m_doc.LookupObject( layer, objectsLine);
+
+			for(int i = 0; i < LinesCount; i++ )
+			{
+				if(!objectsLine[i]->Attributes().m_name.Compare("ugello"))
+						{
+						context.m_doc.DeleteObject(objectsLine[i]);
+						}
+			}
+			context.m_doc.Redraw();
 	  
+	 
+	  
+	  /*CGenPianoVis* punth = new CGenPianoVis();
+	unsigned int undo_record_sn = context.m_doc.BeginUndoRecordEx(punth);*/
+   ON_SimpleArray<CRhUndoRecord* > UndoRec; 
+    context.m_doc.BeginUndoRecord(L"AC_CardBoard");
+
 	  //begin calcolo il punto di intersezione per disegnare l'ugello
 	  double valore_ugello =(_wtof(plugin.m_dialog->ValIniezioneDisassamento));
 	  ON_3dPoint inizio_linea (valore_ugello,0,0);
@@ -1042,7 +1067,7 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 
 	  // context.m_doc.AddCurveObject( line_ugello );
 //begin deseleziona tutto
-	 const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
+	
 	
 	  
 	  
@@ -1110,11 +1135,11 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
     for( i = 0; i < events.Count(); i++ )
     {
       const ON_X_EVENT& e = events[i];
-      context.m_doc.AddPointObject( e.m_A[0] );
+      //context.m_doc.AddPointObject( e.m_A[0] );
       if( e.m_A[0].DistanceTo(e.m_B[0]) > ON_EPSILON )
       {
-        context.m_doc.AddPointObject( e.m_B[0] );
-        context.m_doc.AddCurveObject( ON_Line(e.m_A[0], e.m_B[0]) );
+        //context.m_doc.AddPointObject( e.m_B[0] );
+        //context.m_doc.AddCurveObject( ON_Line(e.m_A[0], e.m_B[0]) );
 		PuntoIntersezione = e.m_B[0];
       }
     }
@@ -1237,6 +1262,16 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 	  ON_wString obj_name = L"ugello";
 	  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
   }
+
+    /*context.m_doc.EndUndoRecord(undo_record_sn);
+  context.m_doc.GetUndoRecords
+
+  context.m_doc.AddCustomUndoEvent*/
+   context.m_doc.EndUndoRecord();
+   context.m_doc.GetUndoRecords(UndoRec);
+   /*context.m_doc.Undo(*UndoRec.At(0));
+   context.m_doc.Redraw();*/
+
 return CRhinoCommand::success;
 }
 

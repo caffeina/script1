@@ -78,6 +78,7 @@ BEGIN_MESSAGE_MAP(DialogPrincipale, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON5, &DialogPrincipale::OnBnClickedButton5)
 	ON_BN_CLICKED(IDC_BUTTON6, &DialogPrincipale::OnBnClickedButton6)
 	ON_BN_CLICKED(IDC_BUTTON8, &DialogPrincipale::OnBnClickedButton8)
+	ON_BN_CLICKED(IDC_BUTTON10, &DialogPrincipale::OnBnClickedButton10)
 END_MESSAGE_MAP()
 
 
@@ -105,7 +106,8 @@ void DialogPrincipale::OnCbnSelchangeCombo5()
 
 void DialogPrincipale::OnBnClickedButton1()
 {	
-	
+	GetDlgItem(IDC_BUTTON2)->EnableWindow(TRUE);
+	UpdateData(true);
 	 RhinoApp().RunScript( L"! _GenPianoVis", 0 );
 
  
@@ -255,7 +257,8 @@ void DialogPrincipale::OnEnChangeRichedit21()
 
 void DialogPrincipale::OnBnClickedButton2()
 {
-	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
+	GetDlgItem(IDC_BUTTON8)->EnableWindow(TRUE);
+	UpdateData(true);
 	RhinoApp().RunScript( L"! _GenCylinder", 0 );
 }
 
@@ -314,6 +317,8 @@ void DialogPrincipale::OnBnClickedButton6()
 {
 	 /*DialogPV dlg( CWnd::FromHandle(::RhinoApp().MainWnd()) );
 	 dlg.DoModal();*/
+	GetDlgItem(IDC_BUTTON1)->EnableWindow(TRUE);
+	UpdateData(true);
 	RhinoApp().RunScript( L"! _DialogPV", 0 );
 
   
@@ -325,3 +330,8 @@ void DialogPrincipale::OnBnClickedButton8()
 	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
 }
 
+
+void DialogPrincipale::OnBnClickedButton10()
+{
+	RhinoApp().RunScript( L"! _Undo", 0 );
+}
