@@ -10,6 +10,7 @@
 #include "atlstr.h"
 #include "TestUserData.h"
 
+ON_SimpleArray<CRhUndoRecord* > UndoRec; 
 
 ON_UUID pvcurva;
 ON_3dPoint AltezzaTacco;
@@ -227,6 +228,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
   }
 
 
+   context.m_doc.BeginUndoRecord(L"GENERA_PIANO_VISIONALE");
   /*GET THE LAYER NAME*/
   CRhinoGetString gs;
   gs.SetCommandPrompt( L"NAME OF LAYER WHICH CONTAINS VISIONAL PLANE : " );
@@ -319,7 +321,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 			//gn.SetCommandPrompt( L"ENTER ANTERIOR ANGLE FOR EXTENSION in grad: " );
 			//gn.SetCommandPromptDefault(L"30");
 			//gn.SetDefaultNumber(30);
-			////gn.AcceptNothing(true);
+			//gn.AcceptNothing(true);
 			//gn.GetNumber();
 			double alphaAngle = _wtof(plugin.m2_dialog->AngoloAlphaDx);//gn.Number();
 			
@@ -464,28 +466,28 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 			delete crv0;
 			crv0 = 0;
 
-				// aniello begin
-				// Get the next runtime object serial number after scripting
-				  unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
-				 
-				  // The the pointers of all of the objects that were added during scripting
-				  ON_SimpleArray<const CRhinoObject*> objects;
-				  for( unsigned int sn = first_sn; sn < next_sn; sn++ )
-				  {
-					const CRhinoObject* obj = context.m_doc.LookupObjectByRuntimeSerialNumber( sn );
-					if( obj && !obj->IsDeleted() )
-					  objects.Append( obj );
-				  }
-				 
-				  
-				  // Do something with the list...
-				  for( int i = 0; i < objects.Count(); i++ )
-				  {
-					const CRhinoObject* obj = objects[i];
-					if( obj->IsSelectable(true) )
-					  obj->Select( true );
-				  }
-				//aniello end
+			// aniello begin
+			// Get the next runtime object serial number after scripting
+			  unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+			 
+			  // The the pointers of all of the objects that were added during scripting
+			  ON_SimpleArray<const CRhinoObject*> objects;
+			  for( unsigned int sn = first_sn; sn < next_sn; sn++ )
+			  {
+				const CRhinoObject* obj = context.m_doc.LookupObjectByRuntimeSerialNumber( sn );
+				if( obj && !obj->IsDeleted() )
+				  objects.Append( obj );
+			  }
+			 
+			  
+			  // Do something with the list...
+			  for( int i = 0; i < objects.Count(); i++ )
+			  {
+				const CRhinoObject* obj = objects[i];
+				if( obj->IsSelectable(true) )
+				  obj->Select( true );
+			  }
+			//aniello end
 
   			/*********************/
 			/*JOIN LINES TOGETHER*/
@@ -528,7 +530,10 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 			/************************/
 			for(int i = 0; i < LinesCount; i++ )
 			{
+				if(objectsLine[i]->Attributes().m_name.Compare("CILINDRO"))
+				{
 				context.m_doc.DeleteObject(objectsLine[i]);
+				}
 			}
 			context.m_doc.Redraw();
 
@@ -539,6 +544,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	  }/*CHIUSURA IF( OBJECT_COUNT > 0 )*/
   }/*CHIUSURA ELSE*/
 
+   context.m_doc.EndUndoRecord();
   return CRhinoCommand::success;
 }
 
@@ -597,6 +603,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 	const CRhinoBrepObject* brep_obj;
 	const CRhinoCurveObject* curve_obj;
 	const CRhinoSurfaceObject* surface_obj;
+	const CRhinoLinearDimension* dimension;
 	int surf_count=0;
 	if( object_count > 0 )
 	{
@@ -612,8 +619,17 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			brep_obj = CRhinoBrepObject::Cast( object );
 			if( brep_obj && object->IsSolid())
 			{
+				context.m_doc.DeleteObject(object);
+				context.m_doc.Redraw();
 				brep_obj_count++;
 			}
+			dimension = CRhinoLinearDimension::Cast(object);
+			if(dimension)
+			{
+				context.m_doc.DeleteObject(object);
+				context.m_doc.Redraw();
+			}
+
 			/*******************************/
 			/*TRY CASTING AS A CURVE OBJECT*/ 
 			/*******************************/
@@ -628,8 +644,8 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				surf_count++;
 		    }
 		}
-		if( brep_obj_count == 0)
-		{
+		//if( brep_obj_count == 0)
+		//{
 			ON_3dPoint center_point( 0.0, 0.0, 0.0 );
 			double radius = 63.5;
 			int __count = plugin.m_dialog->m_comboAltTacco.GetCount();
@@ -798,21 +814,25 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				if ( (height - altfondello)>=provapunto.z+10)
 				{
 					::RhinoApp().Print( L"Funzione controllo altezza OK");
-					//MessageBox(NULL, L"Welcome to the program, press OK to continue", L"Welcome",MB_ICONWARNING | MB_CANCELTRYCONTINUE | MB_DEFBUTTON2);
+					//MessageBox(NULL, L"Funzione controllo altezza tacco OK", L"CheckAltezzaTacco", MB_OK);
+
 				}
 				else{
 					::RhinoApp().Print( L"Funzione controllo altezza NOK: CONTROLLARE!! Il valore della testa e' minore del valore minimo di 10 mm. Occorre diminuire l'altezza del fondello o aumentare l'altezza dello stampo.");
+					//MessageBox(NULL, L"Altezza Tacco troppo bassa! Controllare", L"CheckAltezzaTacco", MB_OK);
 				}
+
+
 
 			  return CRhinoCommand::success;
 
 			/*********************************************************/
 			}
-		}/*CLOSED IF OVER CHECKING BREP COUNT OBJECT*/
-		else
-		{
-			RhinoMessageBox(L"THERE IS ALREADY A CYLINDER OBJECT", PlugIn()->PlugInName(), MB_OK | MB_ICONEXCLAMATION );
-		}
+		//}/*CLOSED IF OVER CHECKING BREP COUNT OBJECT*/
+		//else
+		//{
+		//	RhinoMessageBox(L"THERE IS ALREADY A CYLINDER OBJECT", PlugIn()->PlugInName(), MB_OK | MB_ICONEXCLAMATION );
+		//}
 	}
 	/**********************************************************************/
 
@@ -1827,6 +1847,48 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 
 //
 // END TrimCylinder command
+//
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//
+// BEGIN superUNDO command
+//
+
+class CCommandsuperUNDO : public CRhinoCommand
+{
+public:
+	CCommandsuperUNDO() {}
+	~CCommandsuperUNDO() {}
+	UUID CommandUUID()
+	{
+		// {F23EF84C-B1B8-429D-BE36-BE09C967BC97}
+		static const GUID superUNDOCommand_UUID =
+		{ 0xF23EF84C, 0xB1B8, 0x429D, { 0xBE, 0x36, 0xBE, 0x09, 0xC9, 0x67, 0xBC, 0x97 } };
+		return superUNDOCommand_UUID;
+	}
+	const wchar_t* EnglishCommandName() { return L"superUNDO"; }
+	const wchar_t* LocalCommandName() { return L"superUNDO"; }
+	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
+};
+
+// The one and only CCommandsuperUNDO object
+static class CCommandsuperUNDO thesuperUNDOCommand;
+
+CRhinoCommand::result CCommandsuperUNDO::RunCommand( const CRhinoCommandContext& context )
+{
+	static int count = 1;
+	int countRec = context.m_doc.GetUndoRecords(UndoRec);
+	CRhUndoRecord* currentRec = context.m_doc.CurrentUndoRecord();
+	context.m_doc.Undo(*UndoRec.At(countRec-count));
+	context.m_doc.Redraw();
+	count++;
+	return CRhinoCommand::success;
+}
+
+//
+// END superUNDO command
 //
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////

@@ -78,7 +78,8 @@ BEGIN_MESSAGE_MAP(DialogPrincipale, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON5, &DialogPrincipale::OnBnClickedButton5)
 	ON_BN_CLICKED(IDC_BUTTON6, &DialogPrincipale::OnBnClickedButton6)
 	ON_BN_CLICKED(IDC_BUTTON8, &DialogPrincipale::OnBnClickedButton8)
-	ON_BN_CLICKED(IDC_BUTTON10, &DialogPrincipale::OnBnClickedButton10)
+	ON_BN_CLICKED(IDC_BUTTON7, &DialogPrincipale::OnBnClickedButton7)
+	ON_BN_CLICKED(IDC_BUTTON14, &DialogPrincipale::OnBnClickedButton14)
 END_MESSAGE_MAP()
 
 
@@ -330,8 +331,13 @@ void DialogPrincipale::OnBnClickedButton8()
 	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
 }
 
+void DialogPrincipale::OnBnClickedButton7()
+{
+	RhinoApp().RunScript( L"! _superUNDO", 0);
+	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
+}
 
-void DialogPrincipale::OnBnClickedButton10()
+void DialogPrincipale::OnBnClickedButton14()
 {
 	RhinoApp().RunScript( L"! _Undo", 0 );
 }
