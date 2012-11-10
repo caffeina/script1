@@ -301,6 +301,7 @@ void DialogPrincipale::OnEnChangeEdit5()
 void DialogPrincipale::OnBnClickedButton5()
 {
 	//RhinoApp().RunScript( L"! _TCone", 0 );
+	UpdateData(true);
 	RhinoApp().RunScript( L"! _GenUgello", 0 );
 	//RhinoApp().EnterCommand
 	//RhinoApp().ExecuteCommand
