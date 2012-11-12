@@ -237,6 +237,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
   unsigned int next_SN;
   bool PVLine = false;
   const CRhinoObject* object = 0;
+  int deletingObj = 0;
   for(int i = 0; i < object_count; i++ )
   {
 	object = objects[ i ];
@@ -247,12 +248,13 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	if( curve_obj && !object->Attributes().m_name.Compare("linePV"))
 	{
 		PVLine = true;
+		deletingObj = i;
 	}
   }
 
   if(PVLine)
   {
-	context.m_doc.DeleteObject(object);
+	context.m_doc.DeleteObject(objects[ deletingObj ]);
 	ON_LineCurve curva;
 	curva.SetStartPoint(curvaPV.PointAtStart());
 	curva.SetEndPoint(curvaPV.PointAtEnd());
@@ -574,10 +576,14 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 				/************************/
 				for(int i = 0; i < LinesCount; i++ )
 				{
-					if(objectsLine[i]->Attributes().m_name.Compare("CILINDRO"))
-					{
-						context.m_doc.DeleteObject(objectsLine[i]);
-					}
+						if( objectsLine[i]->Attributes().m_name.Compare("CILINDRO") )
+							 {
+								if(objectsLine[i]->Attributes().m_name.Compare("ugello"))
+								{
+								context.m_doc.DeleteObject(objectsLine[i]);
+								}
+							 }
+					
 				}
 				context.m_doc.Redraw();
 
@@ -660,7 +666,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			/*TRY CASTING AS A RHINO BREP OBJECT*/ 
 			/************************************/
 			brep_obj = CRhinoBrepObject::Cast( object );
-			if( brep_obj && object->IsSolid())
+			 if( brep_obj && !brep_obj->Attributes().m_name.Compare("CILINDRO"))
 			{
 				context.m_doc.DeleteObject(object);
 				context.m_doc.Redraw();
