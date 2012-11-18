@@ -837,10 +837,21 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 
 			dim_obj->UpdateText();
 			 
-			if( context.m_doc.AddObject(dim_obj) )
-			{
-				context.m_doc.Redraw();
-			}		
+				CRhinoObjRef ref(dim_obj);
+				ON_3dmObjectAttributes obj_at_color = dim_obj->Attributes();
+				if ( (height - altfondello)<provapunto.z+10)
+				{
+					obj_at_color.m_color.SetRGB(255,0,0);
+					obj_at_color.SetColorSource(ON::color_from_object);
+					//nn va bene ordine attributi//dim_obj->Attributes().m_color.SetRGB(255,0,0);
+				}
+ 				 
+ 				if( context.m_doc.AddObject(dim_obj) )
+ 				{
+					context.m_doc.ModifyObjectAttributes(ref, obj_at_color);
+ 					context.m_doc.Redraw();
+ 				}		
+	
 			else
 			{
 				delete dim_obj;
