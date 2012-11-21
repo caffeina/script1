@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "DialogPrincipale.h"
 #include "Resource.h"
-#include "DialogPV.h"
+//#include "DialogPV.h"
 
 
 // finestra di dialogo DialogPrincipale
@@ -22,6 +22,14 @@ DialogPrincipale::DialogPrincipale(CWnd* pParent)
 	, ValoreAltezzaFondello(_T("20"))
 	, ValoreTraslazione(_T(""))
 	, ValoreRotazione(_T(""))
+	, EstLineaDx(_T("5"))
+	, EstLineaSx(_T("15"))
+	, EstRettaPolilineaDx(_T("80"))
+	, EstRettaPolilineaSx(_T("80"))
+	, AngoloAlphaDx(_T("30"))
+	, AngoloBetaSx(_T("40"))
+	, FilletDx(_T("6"))
+	, FilletSx(_T("13"))
 {
 }
 
@@ -49,6 +57,14 @@ void DialogPrincipale::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT4, ValoreTraslazione);
 	DDX_Text(pDX, IDC_EDIT5, ValoreRotazione);
 	DDX_Control(pDX, IDC_CMBAltezzaFondello, AltezzaFondelloControllo);
+	DDX_Text(pDX, IDC_EDIT12, EstLineaDx);
+	DDX_Text(pDX, IDC_EDIT3, EstLineaSx);
+	DDX_Text(pDX, IDC_EDIT6, EstRettaPolilineaDx);
+	DDX_Text(pDX, IDC_EDIT7, EstRettaPolilineaSx);
+	DDX_Text(pDX, IDC_EDIT8, AngoloAlphaDx);
+	DDX_Text(pDX, IDC_EDIT9, AngoloBetaSx);
+	DDX_Text(pDX, IDC_EDIT10, FilletDx);
+	DDX_Text(pDX, IDC_EDIT11, FilletSx);
 }
 
 
@@ -80,6 +96,7 @@ BEGIN_MESSAGE_MAP(DialogPrincipale, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON8, &DialogPrincipale::OnBnClickedButton8)
 	ON_BN_CLICKED(IDC_BUTTON7, &DialogPrincipale::OnBnClickedButton7)
 	ON_BN_CLICKED(IDC_BUTTON14, &DialogPrincipale::OnBnClickedButton14)
+	
 END_MESSAGE_MAP()
 
 
@@ -319,9 +336,9 @@ void DialogPrincipale::OnBnClickedButton6()
 {
 	 /*DialogPV dlg( CWnd::FromHandle(::RhinoApp().MainWnd()) );
 	 dlg.DoModal();*/
-	GetDlgItem(IDC_BUTTON1)->EnableWindow(TRUE);
+	/*GetDlgItem(IDC_BUTTON1)->EnableWindow(TRUE);
 	UpdateData(true);
-	RhinoApp().RunScript( L"! _DialogPV", 0 );
+	RhinoApp().RunScript( L"! _DialogPV", 0 );*/
 
   
 }

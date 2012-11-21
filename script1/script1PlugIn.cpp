@@ -259,86 +259,86 @@ void Cscript1PlugIn::ZeroDlg()
           /// INIZIO METODI PER SECONDA FINESTRA MODELESS ////
 
 // aggiunta metodi per finestre modeless
-
-bool Cscript1PlugIn::IsDlgCreated2()
-{
-  bool rc = false;
-  if( m2_dialog && ::IsWindow(m2_dialog->m_hWnd) )
-    rc = true;
-  return rc;
-}
-
-bool Cscript1PlugIn::IsDlgVisible2()
-{
-  bool rc = false;
-  if( IsDlgCreated2() && m2_dialog->IsWindowVisible() )
-    rc = true;
-  return rc;
-
-}
-
-bool Cscript1PlugIn::SetDlgVisible2()
-{
-  bool rc = false;
-  if( IsDlgCreated2() && !IsDlgVisible2() )
-  {
-    m2_dialog->ShowWindow( SW_SHOWNORMAL );
-    m2_dialog->SetFocus();
-    rc = true;
-  }
-  return rc;
-}
-
-bool Cscript1PlugIn::SetDlgHidden2()
-{
-  bool rc = false;
-  if( IsDlgCreated2() && IsDlgVisible2() )
-  {
-    m2_dialog->ShowWindow( SW_HIDE );
-    ::SetFocus( RhinoApp().MainWnd() );
-    rc = true;
-  }
-  return rc;
-}
-
-bool Cscript1PlugIn::DisplayDlg2()// tolto parametro CRhinoDoc& m_doc
-{
-	AFX_MANAGE_STATE( AfxGetStaticModuleState() );
-
-  if( IsDlgCreated2() )
-  {
-    if( !IsDlgVisible2() )
-      SetDlgVisible2();
-    m2_dialog->SetFocus();
-    return true;
-  }
-
-	m2_dialog = new DialogPV( CWnd::FromHandle(RhinoApp().MainWnd()) ); // tolto m_doc come parametro
-	if( m2_dialog->Create(IDD_DIALOG2, CWnd::FromHandle(RhinoApp().MainWnd())) )
-	{
-		m2_dialog->ShowWindow( SW_SHOW );
-		m2_dialog->UpdateWindow();
-		m2_dialog->SetFocus();
-		return true;
-	}
-
-	return false;
-}
-
-
-void Cscript1PlugIn::DestroyDlg2()
-{
-  if( IsDlgCreated2() )
-  {
-    m2_dialog->KillDialog();
-    m_dialog = 0;
-  }
-}
-
-
-void Cscript1PlugIn::ZeroDlg2()
-{
-  m2_dialog = 0;
-}
+//
+//bool Cscript1PlugIn::IsDlgCreated2()
+//{
+//  bool rc = false;
+//  if( m2_dialog && ::IsWindow(m2_dialog->m_hWnd) )
+//    rc = true;
+//  return rc;
+//}
+//
+//bool Cscript1PlugIn::IsDlgVisible2()
+//{
+//  bool rc = false;
+//  if( IsDlgCreated2() && m2_dialog->IsWindowVisible() )
+//    rc = true;
+//  return rc;
+//
+//}
+//
+//bool Cscript1PlugIn::SetDlgVisible2()
+//{
+//  bool rc = false;
+//  if( IsDlgCreated2() && !IsDlgVisible2() )
+//  {
+//    m2_dialog->ShowWindow( SW_SHOWNORMAL );
+//    m2_dialog->SetFocus();
+//    rc = true;
+//  }
+//  return rc;
+//}
+//
+//bool Cscript1PlugIn::SetDlgHidden2()
+//{
+//  bool rc = false;
+//  if( IsDlgCreated2() && IsDlgVisible2() )
+//  {
+//    m2_dialog->ShowWindow( SW_HIDE );
+//    ::SetFocus( RhinoApp().MainWnd() );
+//    rc = true;
+//  }
+//  return rc;
+//}
+//
+//bool Cscript1PlugIn::DisplayDlg2()// tolto parametro CRhinoDoc& m_doc
+//{
+//	AFX_MANAGE_STATE( AfxGetStaticModuleState() );
+//
+//  if( IsDlgCreated2() )
+//  {
+//    if( !IsDlgVisible2() )
+//      SetDlgVisible2();
+//    m2_dialog->SetFocus();
+//    return true;
+//  }
+//
+//	//m2_dialog = new DialogPV( CWnd::FromHandle(RhinoApp().MainWnd()) ); // tolto m_doc come parametro
+//	//if( m2_dialog->Create(IDD_DIALOG2, CWnd::FromHandle(RhinoApp().MainWnd())) )
+//	//{
+//	//	m2_dialog->ShowWindow( SW_SHOW );
+//	//	m2_dialog->UpdateWindow();
+//	//	m2_dialog->SetFocus();
+//	//	return true;
+//	//}
+//
+//	return false;
+//}
+//
+//
+//void Cscript1PlugIn::DestroyDlg2()
+//{
+//  if( IsDlgCreated2() )
+//  {
+//    m2_dialog->KillDialog();
+//    m_dialog = 0;
+//  }
+//}
+//
+//
+//void Cscript1PlugIn::ZeroDlg2()
+//{
+//  m2_dialog = 0;
+//}
 
                //// FINE METODI SECONDA FINESTRA MODELESS ////

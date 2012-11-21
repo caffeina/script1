@@ -101,4 +101,22 @@ public:
 	afx_msg void OnBnClickedButton7();
 public:
 	afx_msg void OnBnClickedButton14();
+	public:
+	CString EstLineaDx;
+
+public:
+	CString EstLineaSx;
+
+public:
+	CString EstRettaPolilineaDx;
+public:
+	CString EstRettaPolilineaSx;
+public:
+	CString AngoloAlphaDx;
+public:
+	CString AngoloBetaSx;
+public:
+	CString FilletDx;
+public:
+	CString FilletSx;
 };

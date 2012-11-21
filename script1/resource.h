@@ -7,7 +7,6 @@
 #define IDC_COMBO2                      7002
 #define IDC_CHECK1                      7003
 #define IDP_OLE_INIT_FAILED             7003
-#define IDD_DIALOG2                     7004
 #define IDC_COMBO1                      7005
 #define IDB_BITMAP4                     7008
 #define IDC_SCROLLBAR1                  7009
@@ -18,6 +17,7 @@
 #define IDC_COMBO5                      7013
 #define IDC_CMBAltezzaFondello          7013
 #define IDC_BUTTON1                     7014
+#define IDC_EDIT12                      7015
 #define IDC_EDIT4                       7016
 #define IDC_EDIT5                       7017
 #define IDC_EDIT6                       7018

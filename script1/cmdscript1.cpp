@@ -10,7 +10,6 @@
 #include "atlstr.h"
 #include "TestUserData.h"
 
-ON_LineCurve curvaPV;
 
 ON_UUID pvcurva;
 ON_3dPoint AltezzaTacco;
@@ -209,9 +208,11 @@ public:
 	UUID CommandUUID()
 	{
 		
-static const GUID CGenPianoVisCommand_UUID = 
-{ 0xc80ef0d2, 0xbe2f, 0x48c0, { 0x84, 0x56, 0x55, 0xd5, 0x75, 0x92, 0x3f, 0x25 } };
-	return CGenPianoVisCommand_UUID;
+		static const GUID CGenPianoVisCommand_UUID = 
+			{ 
+				0xc80ef0d2, 0xbe2f, 0x48c0, { 0x84, 0x56, 0x55, 0xd5, 0x75, 0x92, 0x3f, 0x25 } 
+			};
+		return CGenPianoVisCommand_UUID;
 	}
 	const wchar_t* EnglishCommandName() { return L"GenPianoVis"; }
 	const wchar_t* LocalCommandName() { return L"GenPianoVis"; }
@@ -221,6 +222,13 @@ static const GUID CGenPianoVisCommand_UUID =
 static class CGenPianoVis theGenPianoVisCommand;
 CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& context )
 {
+	/*********************************************************/
+	static ON_LineCurve CurvaPV;
+	static bool ExistPVLine = false;
+	static ON_wString layer_PVLine = L"NONE";
+
+	/*********************************************************/
+
 
   Cscript1PlugIn& plugin = script1PlugIn();
 
@@ -229,338 +237,555 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
     return CRhinoCommand::nothing;
   }
 
+  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
   const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
-  ON_SimpleArray<CRhinoObject*> objects;
-  int object_count = context.m_doc.LookupObject( layer, objects );
-  const CRhinoCurveObject* curve_obj;
-  unsigned int first_SN;
-  unsigned int next_SN;
-  bool PVLine = false;
-  const CRhinoObject* object = 0;
-  int deletingObj = 0;
-  for(int i = 0; i < object_count; i++ )
+  if( layer_PVLine.Compare("NONE") )/*SE LAYER_NAME NON È "NONE", NON È LA PRIMA VOLTA CHE VIENE ATTIVATA QUESTA FUNZIONE*/
   {
-	object = objects[ i ];
-	/************************************/
-	/*TRY CASTING AS A RHINO BREP OBJECT*/ 
-	/************************************/
-	curve_obj = CRhinoCurveObject::Cast( object );
-	if( curve_obj && !object->Attributes().m_name.Compare("linePV"))
+	/****************/
+	/*FIND THE LAYER*/ 
+	/****************/
+	const CRhinoCurveObject* curve_obj;
+	int current_layer_index = layer.LayerIndex();
+	int PVLayer_Index = layer_table.FindLayer( layer_PVLine ); //INDICE DEL LAYER CONTENENTE IL PIANO VISIONALE.
+	ON_SimpleArray<CRhinoObject*> objects;
+	
+	ON_Layer currentLayer;
+	int numLayers = layer_table.LayerCount();
+	layer_table.SetCurrentLayerIndex(PVLayer_Index);
+	for(int i = 0; i < numLayers; i++)
 	{
-		PVLine = true;
-		deletingObj = i;
+	  if(i != PVLayer_Index)
+	  {
+		  currentLayer = layer_table[i];
+		  currentLayer.SetVisible(false);
+		  layer_table.ModifyLayer(currentLayer, i);
+	  }
+
 	}
-  }
-
-  if(PVLine)
-  {
-	context.m_doc.DeleteObject(objects[ deletingObj ]);
-	ON_LineCurve curva;
-	curva.SetStartPoint(curvaPV.PointAtStart());
-	curva.SetEndPoint(curvaPV.PointAtEnd());
-	context.m_doc.AddCurveObject(curva);
 	context.m_doc.Redraw();
-  }/*CHIUSURA IF(OBJECT_COUNT > 0)*/
-  //else
-  //{
-	  /*GET THE LAYER NAME*/
-	  CRhinoGetString gs;
-	  gs.SetCommandPrompt( L"NAME OF LAYER WHICH CONTAINS VISIONAL PLANE " );
-	  gs.SetCommandPromptDefault(L"pv");
-	  gs.SetDefaultString(L"pv");
-	  gs.GetString();
-	  if( gs.CommandResult() != CRhinoCommand::success )
-	  {
-		  return gs.CommandResult();
-	  }
-	  /*********************/
-	  /*VALIDATE THE STRING*/
-	  /*********************/
-	  ON_wString layer_name = gs.String();
-	  layer_name.TrimLeftAndRight();
-	  if( layer_name.IsEmpty() )
-	  {
-		  return CRhinoCommand::cancel;
-	  }
-	    
-	  /*GET A REFERENCE TO THE LAYER TABLE*/
-	  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
-	 
-	  /*FIND THE LAYER*/ 
-	  int layer_index = layer_table.FindLayer(layer_name );
-	  if( layer_index < 0 )
-	  {
-		RhinoApp().Print( L"LAYER \"%s\" DOES NOT EXIST.\n", layer_name );	
-	  }
-	  else
-	  {
-		  ON_Layer currentLayer;
-		  int numLayers = layer_table.LayerCount();
-		  layer_table.SetCurrentLayerIndex(layer_index);
-		  for(int i = 0; i < numLayers; i++)
-		  {
-			  if(i != layer_index)
-			  {
-				  currentLayer = layer_table[i];
-				  currentLayer.SetVisible(false);
-				  layer_table.ModifyLayer(currentLayer, i);
-			  }
-		  }
-		  context.m_doc.Redraw();
-		  const CRhinoLayer& layer = context.m_doc.m_layer_table[layer_index];
-		  ON_SimpleArray<CRhinoObject*> obj_list;
 
-		 
-		  
-		  int object_count = context.m_doc.LookupObject( layer, obj_list );
-		  if( object_count > 0 )
-		  {
-			 /********************************************************************/
-			 //CRhinoObject* obj = obj_list[0];
-			 //if( obj && obj->IsSelectable() )
-			 //{
-				// obj->Select(true);
-				// obj->Highlight(true);
-				// m_doc.Redraw();
-			 //}
-			 /********************************************************************/
-			 //aniello gegin
-			 // Disable redrawing
-			 //CRhinoView::EnableDrawing( FALSE ); meglio tenerlo disabilitato altrimenti la schermata non si aggiorna.
-	 
-			 // Get the next runtime object serial number before scripting
-			 unsigned int first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
-			 //aniello end
-			 /////////////////////
-							// INIZIO PROVA ANNULLAMENTO 
-			 CRhinoGetObject gc;
-			 gc.SetCommandPrompt( L"SELECT LINE TO EXTEND" );
-			 gc.SetGeometryFilter( CRhinoGetObject::curve_object );
-			 gc.GetObjects( 1, 1 );
-			 if(gc.CommandResult() == CRhinoCommand::success )
-			 {
-				const CRhinoObjRef& objref = gc.Object(0);
-				const ON_Curve* pC = ON_Curve::Cast( objref.Geometry() );
-				ON_Curve* crv0 = pC->DuplicateCurve();
-				
-				curvaPV.SetStartPoint(crv0->PointAtStart());
-				curvaPV.SetEndPoint(crv0->PointAtEnd());
 
-				bool rc0 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 1, _wtof(plugin.m2_dialog->EstLineaDx));
-				bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0,_wtof(plugin.m2_dialog->EstLineaSx) );
-				context.m_doc.ReplaceObject(objref, *crv0 );
-				context.m_doc.Redraw();
+	int object_count = context.m_doc.LookupObject( context.m_doc.m_layer_table.CurrentLayer(), objects );
+	const CRhinoObject* object = 0;
+	int deletingObj = 0;
+	for(int i = 0; i < object_count; i++ )
+	{
+		object = objects[ i ];
+		/************************************/
+		/*TRY CASTING AS A RHINO BREP OBJECT*/ 
+		/************************************/
+		curve_obj = CRhinoCurveObject::Cast( object );
+		if( curve_obj && !object->Attributes().m_name.Compare("PVLine"))
+		{
+			context.m_doc.DeleteObject(objects[ deletingObj ]);  //CANCELLARE LA LINEA DEL PIANO VISIONALE MODIFICATA.
+			ON_LineCurve curva;
+			curva.SetStartPoint(CurvaPV.PointAtStart());
+			curva.SetEndPoint(CurvaPV.PointAtEnd());
+			context.m_doc.AddCurveObject(curva);
+			context.m_doc.Redraw();
+			break;
+		}
+	}
 
-				ON_3dPoint p0 = crv0->PointAtStart();
-				ON_3dPoint p1 = crv0->PointAtEnd();
-	 
-				CRhinoGetNumber gn;
-				//double default_value = 30;
-				//gn.SetCommandPrompt( L"ENTER ANTERIOR ANGLE FOR EXTENSION in grad: " );
-				//gn.SetCommandPromptDefault(L"30");
-				//gn.SetDefaultNumber(30);
-				//gn.AcceptNothing(true);
-				//gn.GetNumber();
-				double alphaAngle = _wtof(plugin.m2_dialog->AngoloAlphaDx);//gn.Number();
-				
-				
+	CRhinoGetObject gc;
+	gc.SetCommandPrompt( L"SELECT LINE TO EXTEND" );
+	gc.SetGeometryFilter( CRhinoGetObject::curve_object );
+	gc.GetObjects( 1, 1 );
+	if(gc.CommandResult() == CRhinoCommand::success )
+	{
+		const CRhinoObjRef& objref = gc.Object(0);
+		const ON_Curve* pC = ON_Curve::Cast( objref.Geometry() );
+		ON_Curve* crv0 = pC->DuplicateCurve();
 
-				/*gn.SetCommandPrompt( L"ENTER ANTERIOR LENGTH FOR EXTENSION in mm: " );
-				gn.SetCommandPromptDefault(L"80");
-				gn.SetDefaultNumber(80);
-				gn.GetNumber();*/
-				double antLen = _wtof(plugin.m2_dialog->EstRettaPolilineaDx);// era gn.Number()
+		bool rc0 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 1, _wtof(plugin.m_dialog->EstLineaDx));
+		bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0,_wtof(plugin.m_dialog->EstLineaSx) );
+		context.m_doc.ReplaceObject(objref, *crv0 );
+		context.m_doc.Redraw();
 
-				/*gn.SetCommandPrompt( L"ENTER ANTERIOR FILLET RADIUS in mm: " );
-				gn.SetCommandPromptDefault(L"6");
-				gn.SetDefaultNumber(6);
-				gn.GetNumber();*/
-				double antRad =  _wtof(plugin.m2_dialog->FilletDx);//gn.Number();
+		ON_3dPoint p0 = crv0->PointAtStart();
+		ON_3dPoint p1 = crv0->PointAtEnd();
 
-				/*gn.SetCommandPrompt( L"ENTER POSTERIOR ANGLE FOR EXTENSION default <ALPHA + 10°= 40°> : " );
-				gn.SetCommandPromptDefault(L"40");
-				gn.SetDefaultNumber(40);
-				gn.GetNumber();*/
-				double betaAngle = _wtof(plugin.m2_dialog->AngoloBetaSx);//gn.Number();
+		CRhinoGetNumber gn;
+		//double default_value = 30;
+		//gn.SetCommandPrompt( L"ENTER ANTERIOR ANGLE FOR EXTENSION in grad: " );
+		//gn.SetCommandPromptDefault(L"30");
+		//gn.SetDefaultNumber(30);
+		//gn.AcceptNothing(true);
+		//gn.GetNumber();
+		double alphaAngle = _wtof(plugin.m_dialog->AngoloAlphaDx);//gn.Number();
 
-				/*gn.SetCommandPrompt( L"ENTER POSTERIOR LENGTH FOR EXTENSION in mm: " );
-				gn.SetCommandPromptDefault(L"80");
-				gn.SetDefaultNumber(80);
-				gn.GetNumber();*/
-				double posLen = _wtof(plugin.m2_dialog->EstRettaPolilineaSx);//gn.Number()
+		/*gn.SetCommandPrompt( L"ENTER ANTERIOR LENGTH FOR EXTENSION in mm: " );
+		gn.SetCommandPromptDefault(L"80");
+		gn.SetDefaultNumber(80);
+		gn.GetNumber();*/
+		double antLen = _wtof(plugin.m_dialog->EstRettaPolilineaDx);// era gn.Number()
 
-				/*gn.SetCommandPrompt( L"ENTER POSTERIOR FILLET RADIUS in mm: " );
-				gn.SetCommandPromptDefault(L"13");
-				gn.SetDefaultNumber(13);
-				gn.GetNumber();*/
-				double posRad = _wtof(plugin.m2_dialog->FilletSx);//gn.Number();
+		/*gn.SetCommandPrompt( L"ENTER ANTERIOR FILLET RADIUS in mm: " );
+		gn.SetCommandPromptDefault(L"6");
+		gn.SetDefaultNumber(6);
+		gn.GetNumber();*/
+		double antRad =  _wtof(plugin.m_dialog->FilletDx);//gn.Number();
 
-			
-				ON_3dPoint pointStart;
-				ON_3dPoint pointEnd;
-			 
-				/*DO THE FILLET CALCULATION*/ 
-				double t0 = 0.0, t1 = 0.0;
-	 
-				ON_Plane plane;
-				plane.plane_equation.y = 1.0;
+		/*gn.SetCommandPrompt( L"ENTER POSTERIOR ANGLE FOR EXTENSION default <ALPHA + 10°= 40°> : " );
+		gn.SetCommandPromptDefault(L"40");
+		gn.SetDefaultNumber(40);
+		gn.GetNumber();*/
+		double betaAngle = _wtof(plugin.m_dialog->AngoloBetaSx);//gn.Number();
 
-				pointStart = crv0->PointAtStart();
-				
-				pointEnd   = crv0->PointAtEnd();
+		/*gn.SetCommandPrompt( L"ENTER POSTERIOR LENGTH FOR EXTENSION in mm: " );
+		gn.SetCommandPromptDefault(L"80");
+		gn.SetDefaultNumber(80);
+		gn.GetNumber();*/
+		double posLen = _wtof(plugin.m_dialog->EstRettaPolilineaSx);//gn.Number()
 
-				ON_3dPoint point0((pointStart.x - posLen*cos(betaAngle*acos(-1.0)/180.0)), 0.0, (pointStart.z + posLen*sin(betaAngle*acos(-1.0)/180.0)));
-				ON_3dPoint point1((pointEnd.x + antLen*cos(alphaAngle*acos(-1.0)/180.0)), 0.0, (pointEnd.z - antLen*sin(alphaAngle*acos(-1.0)/180.0)));
+		/*gn.SetCommandPrompt( L"ENTER POSTERIOR FILLET RADIUS in mm: " );
+		gn.SetCommandPromptDefault(L"13");
+		gn.SetDefaultNumber(13);
+		gn.GetNumber();*/
+		double posRad = _wtof(plugin.m_dialog->FilletSx);//gn.Number();
 
-				/**********************************/
-				/*CREATE THE LINE CURVES TO FILLET*/ 
-				/**********************************/
-				ON_LineCurve curve0( pointStart, point0 ); //LINEA A SINISTRA IN FRONT VIEW
-				ON_LineCurve curve1( point1, pointEnd );   //LINEA A DESTRA IN FRONT VIEW 
+		ON_3dPoint pointStart;
+		ON_3dPoint pointEnd;
 
-				
-				/***************************************************/
-				/*FILLET AT THE END/START POINTS OF THE LINE CURVES*/ 
-				/***************************************************/
-				double curve0_t = crv0->Domain().Max();
-				double curve1_t = curve1.Domain().Min();
-				ON_3dPoint PuntoAltezzaTacco = curve1.m_line.to;
-				AltezzaTacco = PuntoAltezzaTacco;
-				
-				
-				
-				if( RhinoGetFilletPoints(curve1,  *crv0, antRad, curve1_t, curve0_t, t1, t0, plane) )
+		/***************************/
+		/*DO THE FILLET CALCULATION*/ 
+		/***************************/
+		double t0 = 0.0, t1 = 0.0;
+
+		ON_Plane plane;
+		plane.plane_equation.y = 1.0;
+
+		pointStart = crv0->PointAtStart();
+
+		pointEnd   = crv0->PointAtEnd();
+
+		ON_3dPoint point0((pointStart.x - posLen*cos(betaAngle*acos(-1.0)/180.0)), 0.0, (pointStart.z + posLen*sin(betaAngle*acos(-1.0)/180.0)));
+		ON_3dPoint point1((pointEnd.x + antLen*cos(alphaAngle*acos(-1.0)/180.0)), 0.0, (pointEnd.z - antLen*sin(alphaAngle*acos(-1.0)/180.0)));
+
+		/**********************************/
+		/*CREATE THE LINE CURVES TO FILLET*/ 
+		/**********************************/
+		ON_LineCurve curve0( pointStart, point0 ); //LINEA A SINISTRA IN FRONT VIEW
+		ON_LineCurve curve1( point1, pointEnd );   //LINEA A DESTRA IN FRONT VIEW 
+
+
+		/***************************************************/
+		/*FILLET AT THE END/START POINTS OF THE LINE CURVES*/ 
+		/***************************************************/
+		double curve0_t = crv0->Domain().Max();
+		double curve1_t = curve1.Domain().Min();
+		ON_3dPoint PuntoAltezzaTacco = curve1.m_line.to;
+		AltezzaTacco = PuntoAltezzaTacco;			
+
+
+		if( RhinoGetFilletPoints(curve1,  *crv0, antRad, curve1_t, curve0_t, t1, t0, plane) )
+		{
+			/*******************************/
+			/*TRIM BACK THE TWO LINE CURVES*/ 
+			/*******************************/
+			ON_Interval domain1( curve1.Domain().Min(), t1 );
+			curve1.Trim( domain1 );
+
+			ON_Interval domain0( crv0->Domain().Min(), t0 );
+			crv0->Trim( domain0 );
+
+			/**************************/
+			/*COMPUTE THE FILLET CURVE*/ 
+			/**************************/
+			ON_3dVector radial0 = curve1.PointAt(t1) - plane.Origin();
+			radial0.Unitize();
+
+			ON_3dVector radial1 = crv0->PointAt(t0) - plane.Origin();
+			radial1.Unitize();
+
+			double angle = acos( radial0 * radial1 );
+			ON_Plane fillet_plane( plane.Origin(), radial0, radial1 );
+			ON_Arc fillet( fillet_plane, plane.Origin(), antRad, angle );
+
+			/******************/
+			/*ADD THE GEOMETRY*/
+			/******************/
+			context.m_doc.AddCurveObject( curve1 );
+			context.m_doc.ReplaceObject(objref, *crv0 );
+			context.m_doc.AddCurveObject( fillet );
+			context.m_doc.Redraw();
+		}		
+
+		t0 = 0.0, t1 = 0.0;
+
+		/***********************************************/
+		/*FILLET AT THE START POINTS OF THE LINE CURVES*/
+		/***********************************************/
+		curve0_t = crv0->Domain().Min();
+		curve1_t = curve0.Domain().Min();
+
+		if( RhinoGetFilletPoints(curve0, *crv0, posRad, curve1_t, curve0_t, t1, t0, plane) )
+		{
+			/*******************************/
+			/*TRIM BACK THE TWO LINE CURVES*/ 
+			/*******************************/
+			ON_Interval domain0( t1, curve0.Domain().Max() );
+			curve0.Trim( domain0 );
+
+			ON_Interval domain1( t0, crv0->Domain().Max() );
+			crv0->Trim( domain1 );
+
+			/**************************/
+			/*COMPUTE THE FILLET CURVE*/ 
+			/**************************/
+			ON_3dVector radial0 = curve0.PointAt(t1) - plane.Origin();
+			radial0.Unitize();
+
+			ON_3dVector radial1 = crv0->PointAt(t0) - plane.Origin();
+			radial1.Unitize();
+
+			double angle = acos( radial0 * radial1 );
+			ON_Plane fillet_plane( plane.Origin(), radial0, radial1 );
+			ON_Arc fillet( fillet_plane, plane.Origin(), posRad, angle );
+
+			/******************/
+			/*ADD THE GEOMETRY*/ 
+			/******************/
+			context.m_doc.AddCurveObject( curve0 );
+			context.m_doc.ReplaceObject(objref, *crv0 );
+			context.m_doc.AddCurveObject( fillet );
+			context.m_doc.Redraw();
+		}
+
+		/******************/
+		/*CLEAN UP OR LEAK*/ 
+		/******************/
+		delete crv0;
+		crv0 = 0;
+
+		/*********************/
+		/*JOIN LINES TOGETHER*/
+		/*********************/
+		ON_SimpleArray<const ON_Curve*> lines;
+		ON_SimpleArray<CRhinoObject*> objectsLine;
+		ON_SimpleArray<ON_Curve*> output;
+		double tolerance = context.m_doc.AbsoluteTolerance();
+		int LinesCount = context.m_doc.LookupObject( context.m_doc.m_layer_table.CurrentLayer(), objectsLine);
+
+		if( LinesCount > 0 )
+		{
+			for(int i = 0; i < LinesCount; i++)
+			{
+				const CRhinoCurveObject* curve_obj = CRhinoCurveObject::Cast( objectsLine[i] );
+				if( curve_obj )
 				{
-					/*******************************/
-					/*TRIM BACK THE TWO LINE CURVES*/ 
-					/*******************************/
-					ON_Interval domain1( curve1.Domain().Min(), t1 );
-					curve1.Trim( domain1 );
-			 
-					ON_Interval domain0( crv0->Domain().Min(), t0 );
-					crv0->Trim( domain0 );
-
-					/**************************/
-					/*COMPUTE THE FILLET CURVE*/ 
-					/**************************/
-					ON_3dVector radial0 = curve1.PointAt(t1) - plane.Origin();
-					radial0.Unitize();
-			 
-					ON_3dVector radial1 = crv0->PointAt(t0) - plane.Origin();
-					radial1.Unitize();
-			 
-					double angle = acos( radial0 * radial1 );
-					ON_Plane fillet_plane( plane.Origin(), radial0, radial1 );
-					ON_Arc fillet( fillet_plane, plane.Origin(), antRad, angle );
-			 
-					/******************/
-					/*ADD THE GEOMETRY*/
-					/******************/
-					context.m_doc.AddCurveObject( curve1 );
-					context.m_doc.ReplaceObject(objref, *crv0 );
-					context.m_doc.AddCurveObject( fillet );
-					context.m_doc.Redraw();
-				}		
-
-				t0 = 0.0, t1 = 0.0;
-
-				/*FILLET AT THE START POINTS OF THE LINE CURVES*/
-				curve0_t = crv0->Domain().Min();
-				curve1_t = curve0.Domain().Min();
-
-				if( RhinoGetFilletPoints(curve0, *crv0, posRad, curve1_t, curve0_t, t1, t0, plane) )
-				{
-					// Trim back the two line curves
-					ON_Interval domain0( t1, curve0.Domain().Max() );
-					curve0.Trim( domain0 );
-			 
-					ON_Interval domain1( t0, crv0->Domain().Max() );
-					crv0->Trim( domain1 );
-					
-
-					/*COMPUTE THE FILLET CURVE*/ 
-					ON_3dVector radial0 = curve0.PointAt(t1) - plane.Origin();
-					radial0.Unitize();
-			 
-					ON_3dVector radial1 = crv0->PointAt(t0) - plane.Origin();
-					radial1.Unitize();
-			 
-					double angle = acos( radial0 * radial1 );
-					ON_Plane fillet_plane( plane.Origin(), radial0, radial1 );
-					ON_Arc fillet( fillet_plane, plane.Origin(), posRad, angle );
-			 
-					/*ADD THE GEOMETRY*/ 
-					context.m_doc.AddCurveObject( curve0 );
-					context.m_doc.ReplaceObject(objref, *crv0 );
-					context.m_doc.AddCurveObject( fillet );
-					context.m_doc.Redraw();
+					lines.Append(curve_obj->Curve());
 				}
-				/******************/
-				/*CLEAN UP OR LEAK*/ 
-				/******************/
-				delete crv0;
-				crv0 = 0;
+			}
+		}
+		if( RhinoMergeCurves(lines, output, tolerance) )
+		{
+			for(int i = 0; i < output.Count(); i++ )
+			{
+				CRhinoCurveObject* crv = new CRhinoCurveObject;
+				ON_3dmObjectAttributes obj_attribs = crv->Attributes();
 
-				//// aniello begin
-				//// Get the next runtime object serial number after scripting
-				//  unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
-				// 
-				//  // The the pointers of all of the objects that were added during scripting
-				//  ON_SimpleArray<const CRhinoObject*> objects;
-				//  for( unsigned int sn = first_sn; sn < next_sn; sn++ )
-				//  {
-				//	const CRhinoObject* obj = context.m_doc.LookupObjectByRuntimeSerialNumber( sn );
-				//	if( obj && !obj->IsDeleted() )
-				//	{
-				//	  objects.Append( obj );
-				//	}
-				//  }
-				// 
-				//  
-				//  // Do something with the list...
-				//  for( int i = 0; i < objects.Count(); i++ )
-				//  {
-				//	const CRhinoObject* obj = objects[i];
-				//	if( obj->IsSelectable(true) )
-				//	{
-				//	  obj->Select( true );
-				//	}
-				//  }
-				////aniello end
+				/*************************************/
+				/*MODIFY THE ATTRIBUTES OF THE OBJECT*/ 
+				/*************************************/
+				obj_attribs.m_name = L"PVLine";
+				const CRhinoObjRef& objref = crv;
+				context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
 
-  				/*********************/
-				/*JOIN LINES TOGETHER*/
-				/*********************/
-				ON_SimpleArray<const ON_Curve*> lines;
-				ON_SimpleArray<CRhinoObject*> objectsLine;
-				ON_SimpleArray<ON_Curve*> output;
-				double tolerance = context.m_doc.AbsoluteTolerance();
-				int LinesCount = context.m_doc.LookupObject( layer, objectsLine);
-
-				if( LinesCount > 0 )
+				crv->SetCurve( output[i] );
+				if( context.m_doc.AddObject(crv) )
 				{
-					for(int i = 0; i < LinesCount; i++)
+					crv->Select();
+				}
+				else
+				{
+					delete crv;
+				}
+			}
+		}/*CHIUSURA IF RHINOMERGECURVES(LINES, OUTPUT, TOLERANCE)*/
+		/************************/
+		/*DELETE CHILDREN CURVES*/
+		/************************/
+		for(int i = 0; i < LinesCount; i++ )
+		{
+			if( objectsLine[i]->Attributes().m_name.Compare("CILINDRO") )
+			{
+				if(objectsLine[i]->Attributes().m_name.Compare("ugello"))
+				{
+					context.m_doc.DeleteObject(objectsLine[i]);
+				}
+			}
+		}
+		context.m_doc.Redraw();
+
+		/*************************/
+		/*END JOIN LINES TOGETHER*/
+		/*************************/
+	}    
+  }
+  if( !layer_PVLine.Compare("NONE") )/*È LA PRIMA VOLTA CHE VIENE ATTIVATA QUESTA FUNZIONE*/
+  {
+	/********************/
+	/*GET THE LAYER NAME*/
+	/********************/
+	CRhinoGetString gs;
+	gs.SetCommandPrompt( L"NAME OF LAYER THAT CONTAINS VISIONAL PLANE " );
+	gs.SetCommandPromptDefault(L"pv");
+	gs.SetDefaultString(L"pv");
+	gs.GetString();
+	if( gs.CommandResult() != CRhinoCommand::success )
+	{
+		return gs.CommandResult();
+	}
+	/*********************/
+	/*VALIDATE THE STRING*/
+	/*********************/
+	ON_wString layer_name = gs.String();
+	layer_name.TrimLeftAndRight();
+	if( layer_name.IsEmpty() )
+	{
+	  return CRhinoCommand::cancel;
+	}
+
+	/************************************/
+	/*GET A REFERENCE TO THE LAYER TABLE*/
+	/************************************/
+	CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+
+	/****************/
+	/*FIND THE LAYER*/ 
+	/****************/
+	int layer_index = layer_table.FindLayer(layer_name );
+	if( layer_index < 0 )
+	{
+		RhinoApp().Print( L"LAYER \"%s\" DOES NOT EXIST.\n", layer_name );	
+		return CRhinoCommand::nothing;
+	}
+	else
+	{
+		layer_PVLine = gs.String();
+		ON_Layer currentLayer;
+		int numLayers = layer_table.LayerCount();
+		layer_table.SetCurrentLayerIndex(layer_index);
+		for(int i = 0; i < numLayers; i++)
+		{
+			if(i != layer_index)
+			{
+				currentLayer = layer_table[i];
+				currentLayer.SetVisible(false);
+				layer_table.ModifyLayer(currentLayer, i);
+			}
+		}
+		context.m_doc.Redraw();
+		CRhinoGetObject gc;
+		gc.SetCommandPrompt( L"SELECT LINE TO EXTEND" );
+		gc.SetGeometryFilter( CRhinoGetObject::curve_object );
+		gc.GetObjects( 1, 1 );
+		if(gc.CommandResult() == CRhinoCommand::success )
+		{
+			const CRhinoObjRef& objref = gc.Object(0);
+			const ON_Curve* pC = ON_Curve::Cast( objref.Geometry() );
+			ON_Curve* crv0 = pC->DuplicateCurve();
+
+			CurvaPV.SetStartPoint(crv0->PointAtStart());
+			CurvaPV.SetEndPoint(crv0->PointAtEnd());
+
+			bool rc0 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 1, _wtof(plugin.m_dialog->EstLineaDx));
+			bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0,_wtof(plugin.m_dialog->EstLineaSx) );
+			context.m_doc.ReplaceObject(objref, *crv0 );
+			context.m_doc.Redraw();
+
+			ON_3dPoint p0 = crv0->PointAtStart();
+			ON_3dPoint p1 = crv0->PointAtEnd();
+
+			CRhinoGetNumber gn;
+			//double default_value = 30;
+			//gn.SetCommandPrompt( L"ENTER ANTERIOR ANGLE FOR EXTENSION in grad: " );
+			//gn.SetCommandPromptDefault(L"30");
+			//gn.SetDefaultNumber(30);
+			//gn.AcceptNothing(true);
+			//gn.GetNumber();
+			double alphaAngle = _wtof(plugin.m_dialog->AngoloAlphaDx);//gn.Number();
+
+			/*gn.SetCommandPrompt( L"ENTER ANTERIOR LENGTH FOR EXTENSION in mm: " );
+			gn.SetCommandPromptDefault(L"80");
+			gn.SetDefaultNumber(80);
+			gn.GetNumber();*/
+			double antLen = _wtof(plugin.m_dialog->EstRettaPolilineaDx);// era gn.Number()
+
+			/*gn.SetCommandPrompt( L"ENTER ANTERIOR FILLET RADIUS in mm: " );
+			gn.SetCommandPromptDefault(L"6");
+			gn.SetDefaultNumber(6);
+			gn.GetNumber();*/
+			double antRad =  _wtof(plugin.m_dialog->FilletDx);//gn.Number();
+
+			/*gn.SetCommandPrompt( L"ENTER POSTERIOR ANGLE FOR EXTENSION default <ALPHA + 10°= 40°> : " );
+			gn.SetCommandPromptDefault(L"40");
+			gn.SetDefaultNumber(40);
+			gn.GetNumber();*/
+			double betaAngle = _wtof(plugin.m_dialog->AngoloBetaSx);//gn.Number();
+
+			/*gn.SetCommandPrompt( L"ENTER POSTERIOR LENGTH FOR EXTENSION in mm: " );
+			gn.SetCommandPromptDefault(L"80");
+			gn.SetDefaultNumber(80);
+			gn.GetNumber();*/
+			double posLen = _wtof(plugin.m_dialog->EstRettaPolilineaSx);//gn.Number()
+
+			/*gn.SetCommandPrompt( L"ENTER POSTERIOR FILLET RADIUS in mm: " );
+			gn.SetCommandPromptDefault(L"13");
+			gn.SetDefaultNumber(13);
+			gn.GetNumber();*/
+			double posRad = _wtof(plugin.m_dialog->FilletSx);//gn.Number();
+
+			ON_3dPoint pointStart;
+			ON_3dPoint pointEnd;
+
+			/***************************/
+			/*DO THE FILLET CALCULATION*/ 
+			/***************************/
+			double t0 = 0.0, t1 = 0.0;
+
+			ON_Plane plane;
+			plane.plane_equation.y = 1.0;
+
+			pointStart = crv0->PointAtStart();
+
+			pointEnd   = crv0->PointAtEnd();
+
+			ON_3dPoint point0((pointStart.x - posLen*cos(betaAngle*acos(-1.0)/180.0)), 0.0, (pointStart.z + posLen*sin(betaAngle*acos(-1.0)/180.0)));
+			ON_3dPoint point1((pointEnd.x + antLen*cos(alphaAngle*acos(-1.0)/180.0)), 0.0, (pointEnd.z - antLen*sin(alphaAngle*acos(-1.0)/180.0)));
+
+			/**********************************/
+			/*CREATE THE LINE CURVES TO FILLET*/ 
+			/**********************************/
+			ON_LineCurve curve0( pointStart, point0 ); //LINEA A SINISTRA IN FRONT VIEW
+			ON_LineCurve curve1( point1, pointEnd );   //LINEA A DESTRA IN FRONT VIEW 
+
+
+			/***************************************************/
+			/*FILLET AT THE END/START POINTS OF THE LINE CURVES*/ 
+			/***************************************************/
+			double curve0_t = crv0->Domain().Max();
+			double curve1_t = curve1.Domain().Min();
+			ON_3dPoint PuntoAltezzaTacco = curve1.m_line.to;
+			AltezzaTacco = PuntoAltezzaTacco;			
+
+
+			if( RhinoGetFilletPoints(curve1,  *crv0, antRad, curve1_t, curve0_t, t1, t0, plane) )
+			{
+				/*******************************/
+				/*TRIM BACK THE TWO LINE CURVES*/ 
+				/*******************************/
+				ON_Interval domain1( curve1.Domain().Min(), t1 );
+				curve1.Trim( domain1 );
+
+				ON_Interval domain0( crv0->Domain().Min(), t0 );
+				crv0->Trim( domain0 );
+
+				/**************************/
+				/*COMPUTE THE FILLET CURVE*/ 
+				/**************************/
+				ON_3dVector radial0 = curve1.PointAt(t1) - plane.Origin();
+				radial0.Unitize();
+
+				ON_3dVector radial1 = crv0->PointAt(t0) - plane.Origin();
+				radial1.Unitize();
+
+				double angle = acos( radial0 * radial1 );
+				ON_Plane fillet_plane( plane.Origin(), radial0, radial1 );
+				ON_Arc fillet( fillet_plane, plane.Origin(), antRad, angle );
+
+				/******************/
+				/*ADD THE GEOMETRY*/
+				/******************/
+				context.m_doc.AddCurveObject( curve1 );
+				context.m_doc.ReplaceObject(objref, *crv0 );
+				context.m_doc.AddCurveObject( fillet );
+				context.m_doc.Redraw();
+			}		
+
+			t0 = 0.0, t1 = 0.0;
+
+			/***********************************************/
+			/*FILLET AT THE START POINTS OF THE LINE CURVES*/
+			/***********************************************/
+			curve0_t = crv0->Domain().Min();
+			curve1_t = curve0.Domain().Min();
+
+			if( RhinoGetFilletPoints(curve0, *crv0, posRad, curve1_t, curve0_t, t1, t0, plane) )
+			{
+				/*******************************/
+				/*TRIM BACK THE TWO LINE CURVES*/ 
+				/*******************************/
+				ON_Interval domain0( t1, curve0.Domain().Max() );
+				curve0.Trim( domain0 );
+
+				ON_Interval domain1( t0, crv0->Domain().Max() );
+				crv0->Trim( domain1 );
+
+				/**************************/
+				/*COMPUTE THE FILLET CURVE*/ 
+				/**************************/
+				ON_3dVector radial0 = curve0.PointAt(t1) - plane.Origin();
+				radial0.Unitize();
+
+				ON_3dVector radial1 = crv0->PointAt(t0) - plane.Origin();
+				radial1.Unitize();
+
+				double angle = acos( radial0 * radial1 );
+				ON_Plane fillet_plane( plane.Origin(), radial0, radial1 );
+				ON_Arc fillet( fillet_plane, plane.Origin(), posRad, angle );
+
+				/******************/
+				/*ADD THE GEOMETRY*/ 
+				/******************/
+				context.m_doc.AddCurveObject( curve0 );
+				context.m_doc.ReplaceObject(objref, *crv0 );
+				context.m_doc.AddCurveObject( fillet );
+				context.m_doc.Redraw();
+			}
+
+			/******************/
+			/*CLEAN UP OR LEAK*/ 
+			/******************/
+			delete crv0;
+			crv0 = 0;
+
+			/*********************/
+			/*JOIN LINES TOGETHER*/
+			/*********************/
+			ON_SimpleArray<const ON_Curve*> lines;
+			ON_SimpleArray<CRhinoObject*> objectsLine;
+			ON_SimpleArray<ON_Curve*> output;
+			double tolerance = context.m_doc.AbsoluteTolerance();
+			int LinesCount = context.m_doc.LookupObject( context.m_doc.m_layer_table.CurrentLayer(), objectsLine);
+
+			if( LinesCount > 0 )
+			{
+				for(int i = 0; i < LinesCount; i++)
+				{
+					const CRhinoCurveObject* curve_obj = CRhinoCurveObject::Cast( objectsLine[i] );
+					if( curve_obj )
 					{
-						const CRhinoCurveObject* curve_obj = CRhinoCurveObject::Cast( objectsLine[i] );
-						if( curve_obj )
-						{
-							lines.Append(curve_obj->Curve());
-						}
+						lines.Append(curve_obj->Curve());
 					}
 				}
-				if( RhinoMergeCurves(lines, output, tolerance) )
+			}
+			if( RhinoMergeCurves(lines, output, tolerance) )
+			{
+				for(int i = 0; i < output.Count(); i++ )
 				{
-					for(int i = 0; i < output.Count(); i++ )
-					{
-						CRhinoCurveObject* crv = new CRhinoCurveObject;
-						ON_3dmObjectAttributes obj_attribs = crv->Attributes();
+					CRhinoCurveObject* crv = new CRhinoCurveObject;
+					ON_3dmObjectAttributes obj_attribs = crv->Attributes();
 
-						/*MODIFY THE ATTRIBUTES OF THE OBJECT*/ 
-						obj_attribs.m_name = L"linePV";
-						const CRhinoObjRef& objref = crv;
-						context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
+					/*************************************/
+					/*MODIFY THE ATTRIBUTES OF THE OBJECT*/ 
+					/*************************************/
+					obj_attribs.m_name = L"PVLine";
+					const CRhinoObjRef& objref = crv;
+					context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
 
-						crv->SetCurve( output[i] );
+					crv->SetCurve( output[i] );
 						if( context.m_doc.AddObject(crv) )
 						{
 							crv->Select();
@@ -569,31 +794,29 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 						{
 							delete crv;
 						}
+				}
+			}/*CHIUSURA IF RHINOMERGECURVES(LINES, OUTPUT, TOLERANCE)*/
+			/************************/
+			/*DELETE CHILDREN CURVES*/
+			/************************/
+			for(int i = 0; i < LinesCount; i++ )
+			{
+				if( objectsLine[i]->Attributes().m_name.Compare("CILINDRO") )
+				{
+					if(objectsLine[i]->Attributes().m_name.Compare("ugello"))
+					{
+						context.m_doc.DeleteObject(objectsLine[i]);
 					}
 				}
-				/************************/
-				/*DELETE CHILDREN CURVES*/
-				/************************/
-				for(int i = 0; i < LinesCount; i++ )
-				{
-						if( objectsLine[i]->Attributes().m_name.Compare("CILINDRO") )
-							 {
-								if(objectsLine[i]->Attributes().m_name.Compare("ugello"))
-								{
-								context.m_doc.DeleteObject(objectsLine[i]);
-								}
-							 }
-					
-				}
-				context.m_doc.Redraw();
+			}
+			context.m_doc.Redraw();
 
-				/*************************/
-				/*END JOIN LINES TOGETHER*/
-				/*************************/
-			 }
-		  }/*CHIUSURA IF( OBJECT_COUNT > 0 )*/
-	  }/*CHIUSURA ELSE*/
-  //}/*CHIUSURA ELSE ===> IF(OBJECT_COUNT > 0)*/
+			/*************************/
+			/*END JOIN LINES TOGETHER*/
+			/*************************/
+		}    		
+	}/*CHIUSURA ELSE LAYER_INDEX < 0 */	
+ }/*CHIUSURA ELSE !LAYER_PVLINE.COMPARE("NONE")*/
   return CRhinoCommand::success;
 }
 
@@ -666,7 +889,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			/*TRY CASTING AS A RHINO BREP OBJECT*/ 
 			/************************************/
 			brep_obj = CRhinoBrepObject::Cast( object );
-			 if( brep_obj && !brep_obj->Attributes().m_name.Compare("CILINDRO"))
+			if( brep_obj && !brep_obj->Attributes().m_name.Compare("CILINDRO"))
 			{
 				context.m_doc.DeleteObject(object);
 				context.m_doc.Redraw();
@@ -837,21 +1060,10 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 
 			dim_obj->UpdateText();
 			 
-				CRhinoObjRef ref(dim_obj);
-				ON_3dmObjectAttributes obj_at_color = dim_obj->Attributes();
-				if ( (height - altfondello)<provapunto.z+10)
-				{
-					obj_at_color.m_color.SetRGB(255,0,0);
-					obj_at_color.SetColorSource(ON::color_from_object);
-					//nn va bene ordine attributi//dim_obj->Attributes().m_color.SetRGB(255,0,0);
-				}
- 				 
- 				if( context.m_doc.AddObject(dim_obj) )
- 				{
-					context.m_doc.ModifyObjectAttributes(ref, obj_at_color);
- 					context.m_doc.Redraw();
- 				}		
-	
+			if( context.m_doc.AddObject(dim_obj) )
+			{
+				context.m_doc.Redraw();
+			}		
 			else
 			{
 				delete dim_obj;
@@ -1427,51 +1639,51 @@ CRhinoCommand::result CCommandNewName::RunCommand( const CRhinoCommandContext& c
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
 //
-// BEGIN DialogPV command
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+////
+//// BEGIN DialogPV command
+////
 //
-
-class CCommandDialogPV : public CRhinoCommand
-{
-public:
-	CCommandDialogPV() {}
-	~CCommandDialogPV() {}
-	UUID CommandUUID()
-	{
-		// {A05939D1-66A1-480D-BAFD-213DE82F8CB8}
-		static const GUID DialogPVCommand_UUID =
-		{ 0xA05939D1, 0x66A1, 0x480D, { 0xBA, 0xFD, 0x21, 0x3D, 0xE8, 0x2F, 0x8C, 0xB8 } };
-		return DialogPVCommand_UUID;
-	}
-	const wchar_t* EnglishCommandName() { return L"DialogPV"; }
-	const wchar_t* LocalCommandName() { return L"DialogPV"; }
-	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
-};
-
-// The one and only CCommandDialogPV object
-static class CCommandDialogPV theDialogPVCommand;
-
-CRhinoCommand::result CCommandDialogPV::RunCommand( const CRhinoCommandContext& context )
-{
-	Cscript1PlugIn& plugin = script1PlugIn();
-
-  bool bVisible = plugin.IsDlgVisible2();
-
-  if( context.IsInteractive() )
-  {
-    if( false == bVisible )
-		plugin.DisplayDlg2(); // tolto come parametro context.m_doc
-  }
-
-	return CRhinoCommand::success;
-}
-
+//class CCommandDialogPV : public CRhinoCommand
+//{
+//public:
+//	CCommandDialogPV() {}
+//	~CCommandDialogPV() {}
+//	UUID CommandUUID()
+//	{
+//		// {A05939D1-66A1-480D-BAFD-213DE82F8CB8}
+//		static const GUID DialogPVCommand_UUID =
+//		{ 0xA05939D1, 0x66A1, 0x480D, { 0xBA, 0xFD, 0x21, 0x3D, 0xE8, 0x2F, 0x8C, 0xB8 } };
+//		return DialogPVCommand_UUID;
+//	}
+//	const wchar_t* EnglishCommandName() { return L"DialogPV"; }
+//	const wchar_t* LocalCommandName() { return L"DialogPV"; }
+//	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
+//};
 //
-// END DialogPV command
+//// The one and only CCommandDialogPV object
+//static class CCommandDialogPV theDialogPVCommand;
 //
+//CRhinoCommand::result CCommandDialogPV::RunCommand( const CRhinoCommandContext& context )
+//{
+//	Cscript1PlugIn& plugin = script1PlugIn();
+//
+//  bool bVisible = plugin.IsDlgVisible2();
+//
+//  if( context.IsInteractive() )
+//  {
+//    if( false == bVisible )
+//		plugin.DisplayDlg2(); // tolto come parametro context.m_doc
+//  }
+//
+//	return CRhinoCommand::success;
+//}
+//
+////
+//// END DialogPV command
+////
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////

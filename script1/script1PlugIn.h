@@ -5,7 +5,7 @@
 #pragma once
 
 #include "DialogPrincipale.h"
-#include "DialogPV.h"
+
 
 /////////////////////////////////////////////////////////////////////////////
 // Cscript1PlugIn
@@ -58,7 +58,7 @@ public:
 public:
   ON_wString m_plugin_version;
   DialogPrincipale* m_dialog;
-  DialogPV* m2_dialog;
+  //DialogPV* m2_dialog;
 
   // TODO: Add additional class information here
 };

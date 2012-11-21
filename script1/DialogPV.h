@@ -20,24 +20,5 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // Supporto DDX/DDV
 
 	DECLARE_MESSAGE_MAP()
-public:
-	CString EstLineaDx;
-public:
-	afx_msg void OnEnChangeEdit2();
-public:
-	CString EstLineaSx;
-public:
-	afx_msg void OnEnChangeEdit3();
-public:
-	CString EstRettaPolilineaDx;
-public:
-	CString EstRettaPolilineaSx;
-public:
-	CString AngoloAlphaDx;
-public:
-	CString AngoloBetaSx;
-public:
-	CString FilletDx;
-public:
-	CString FilletSx;
+
 };
