@@ -86,8 +86,8 @@ BEGIN
     CONTROL         "Centrale",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,108,103,43,10
     CONTROL         "Disassata",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,108,118,47,10
     LTEXT           "Valore del disassamento",IDC_STATIC,25,196,78,8,WS_DISABLED
-    CONTROL         "Iniezione Centrale",IDC_RADIO3,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | WS_TABSTOP,7,156,74,10
-    CONTROL         "Iniezione Disassata",IDC_RADIO4,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | WS_TABSTOP,7,177,77,10
+    CONTROL         "Iniezione Centrale",IDC_RADIO3,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,7,156,74,10
+    CONTROL         "Iniezione Disassata",IDC_RADIO4,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,7,177,77,10
     CONTROL         "Fondello di ferro",IDC_RADIO7,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | WS_GROUP | WS_TABSTOP,7,252,68,10
     CONTROL         "Fondello di alluminio",IDC_RADIO8,"Button",BS_AUTORADIOBUTTON | WS_DISABLED | WS_TABSTOP,7,270,79,10
     LTEXT           "Valore del disassamento",IDC_STATIC,97,134,78,8,WS_DISABLED
@@ -150,15 +150,17 @@ BEGIN
     IDC_CMBAltezzaTacco, 0x403, 4, 0
 0x3431, 0x0030, 
     IDC_CMBAltezzaTacco, 0x403, 4, 0
+0x3531, 0x0030, 
+    IDC_CMBAltezzaTacco, 0x403, 4, 0
 0x3631, 0x0030, 
     IDC_CMBAltezzaTacco, 0x403, 4, 0
 0x3731, 0x0030, 
     IDC_CMBAltezzaTacco, 0x403, 4, 0
 0x3831, 0x0030, 
     IDC_CMBAltezzaTacco, 0x403, 4, 0
+0x3931, 0x0030, 
+    IDC_CMBAltezzaTacco, 0x403, 4, 0
 0x3032, 0x0030, 
-    IDC_CMBAltezzaFondello, 0x403, 2, 0
-0x0035, 
     IDC_CMBAltezzaFondello, 0x403, 3, 0
 0x3031, "\000" 
     IDC_CMBAltezzaFondello, 0x403, 3, 0

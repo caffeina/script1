@@ -133,7 +133,37 @@ void DialogPrincipale::OnBnClickedButton1()
 
 void DialogPrincipale::OnCbnSelchangeCombo2()
 {
-	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
+	CComboBox *combo= (CComboBox *)GetDlgItem(IDC_COMBO2);
+	UpdateData(true);
+	CString strCBText;
+	int nIndex = combo->GetCurSel();
+	combo->GetLBText( nIndex, strCBText);
+	CComboBox *combo2= (CComboBox *)GetDlgItem(IDC_CMBAltezzaTacco);
+	if((strCBText)==("Rocchetto Normale")||(strCBText)==("Rocchetto Trasversale"))
+	{
+		combo2->ResetContent();
+		combo2->AddString(L"140");
+		combo2->AddString(L"160");
+		combo2->AddString(L"180");
+		//combo2->GetLBText( nIndex, strCBText);
+		//if((strCBText)==("150")){combo2->DeleteString(1);}
+		/*if((strCBText)==("150"))combo2->DeleteString(3);
+		combo2->DeleteString(5);
+		combo2->DeleteString(6);*/
+	}
+	else
+	{
+		combo2->ResetContent();
+		combo2->AddString(L"140");
+		combo2->AddString(L"150");
+		combo2->AddString(L"160");
+		combo2->AddString(L"170");
+		combo2->AddString(L"180");
+		combo2->AddString(L"190");
+		combo2->AddString(L"200");
+	}
+
+	
 }
 
 void DialogPrincipale::OnEnChangeEdit2()
