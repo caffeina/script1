@@ -266,11 +266,11 @@ void DialogPrincipale::OnBnClickedCheck1()
 	if (CWnd::IsDlgButtonChecked(IDC_CHECK1) ) {
 	GetDlgItem(IDC_RADIO1)->EnableWindow(TRUE);
 	GetDlgItem(IDC_RADIO2)->EnableWindow(TRUE);
-	GetDlgItem(IDC_RADIO3)->EnableWindow(TRUE);
-	GetDlgItem(IDC_RADIO4)->EnableWindow(TRUE);
+	//GetDlgItem(IDC_RADIO3)->EnableWindow(TRUE); fix bug segnalato da Cristiano
+	//GetDlgItem(IDC_RADIO4)->EnableWindow(TRUE); fix bug segnalato da Cristiano
 	GetDlgItem(IDC_RADIO7)->EnableWindow(TRUE);
 	GetDlgItem(IDC_RADIO8)->EnableWindow(TRUE);
-	GetDlgItem(IDC_COMBO1)->EnableWindow(TRUE);
+	//GetDlgItem(IDC_COMBO1)->EnableWindow(TRUE); fix bug segnalato da Cristiano
 	//GetDlgItem(IDC_RADIO2)->GetCheckedRadioButton(IDC_RADIO2,IDC_RADIO2);
 	StatusRadio2_Dissasata = 0;
 	StatusRadio1_Centrale = -1;
@@ -280,11 +280,12 @@ void DialogPrincipale::OnBnClickedCheck1()
 	else {
 	GetDlgItem(IDC_RADIO1)->EnableWindow(FALSE);
 	GetDlgItem(IDC_RADIO2)->EnableWindow(FALSE);
-	GetDlgItem(IDC_RADIO3)->EnableWindow(FALSE);
-	GetDlgItem(IDC_RADIO4)->EnableWindow(FALSE);
+	//GetDlgItem(IDC_RADIO3)->EnableWindow(FALSE);
+	//GetDlgItem(IDC_RADIO4)->EnableWindow(FALSE);
 	GetDlgItem(IDC_RADIO7)->EnableWindow(FALSE);
 	GetDlgItem(IDC_RADIO8)->EnableWindow(FALSE);
-	GetDlgItem(IDC_COMBO1)->EnableWindow(FALSE);
+	//GetDlgItem(IDC_COMBO1)->EnableWindow(FALSE);
+	UpdateData(FALSE);
 	}
 
 	
