@@ -9,6 +9,7 @@
 #include "script1App.h"
 #include "atlstr.h"
 #include "TestUserData.h"
+#include <math.h>
 
 
 ON_UUID pvcurva;
@@ -1727,7 +1728,9 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 		const CRhinoCurveObject* curve_obj;
 		const CRhinoSurfaceObject* surface_obj;
 		const CRhinoObject* object = 0;
-
+		unsigned int first_sn;
+		unsigned int next_sn;
+		ON_wString obj_name;
 
 		/*********************************************/
 		/*           CREATE FONDELLO PLANE           */
@@ -1736,13 +1739,22 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 		ON_3dPoint point0((63.5 + 20.0),0.0, 0.0);
 		ON_3dPoint point1(-(63.5 + 20.0),0.0, 0.0);
 		ON_LineCurve curve0( point0, point1 );
-
-		context.m_doc.AddCurveObject(curve0);
-		context.m_doc.Redraw();
-
-		unsigned int first_sn;
-		unsigned int next_sn;
-		ON_wString obj_name;
+		first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+		if(context.m_doc.AddCurveObject(curve0))
+		{
+			context.m_doc.Redraw();
+			obj_name = L"FONDLine";
+			next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+			if( first_sn == next_sn )
+			{
+				return CRhinoCommand::nothing;
+			}
+			else
+			{
+				SetNametoObject(context.m_doc,first_sn,obj_name,true);	
+			}
+		}
+		
 		object_count = context.m_doc.LookupObject( layer, objects );
 		for(int i = 0; i < object_count; i++ )
 		{
@@ -1954,7 +1966,7 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  ON_Layer layer2;
 	  int layer_index = 0;
 	  ON_Color color = ON_Color(255, 0, 0);
-	  ON_wString layer_name_FONDELLO = L"FONDELLO";
+	  ON_wString layer_name_FONDELLO = L"FISSO";
 	  layer2.SetLayerName( layer_name_FONDELLO );
 	  layer2.SetColor(color);
 
@@ -1974,7 +1986,7 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  layer_index = context.m_doc.m_layer_table.AddLayer( layer2 );
 
 	  color.SetRGB(0, 0, 255);
-	  ON_wString layer_name_FISSO    = L"FISSO";
+	  ON_wString layer_name_FISSO    = L"FONDELLO";
 	  layer2.SetLayerName( layer_name_FISSO );
 	  layer2.SetColor(color);
 
@@ -1982,7 +1994,6 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  /*ADD THE LAYER TO THE LAYER TABLE*/
 	  /**********************************/
 	  layer_index = context.m_doc.m_layer_table.AddLayer( layer2 );
-
 	  context.m_doc.Redraw();
 
 	  countCylnds = 0;
@@ -1998,11 +2009,12 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 		name = object->Attributes().m_name;
 		brep_obj = CRhinoBrepObject::Cast( object );
 
-		if( brep_obj && !name.Compare("CILINDRO") )//brep_obj->IsSolid()
+		if( brep_obj && !name.Compare("CILINDRO") )
 		{
 		   countCylnds++;
 		}/*CHIUSURA IF CILINDRO*/
 	  }/*CHIUSURA LOOP SUGLI OGGETTI*/
+
 	  int *cylinders = new int[countCylnds];
 	  countCylnds = 0;
 	  for(int i = 0; i < object_count; i++)
@@ -2052,7 +2064,7 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 
 	  for(int i = 0; i < geom.Count(); i++ )
 	  {
-		ON_MassProperties* mp = &MassProp.AppendNew();			 
+		ON_MassProperties* mp = &MassProp.AppendNew();	
 		const ON_Brep* brep = ON_Brep::Cast(geom[i]);
 		if( brep )
 		{
@@ -2066,7 +2078,7 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  int intTmp = 0;
 	  ON_3dPoint tmp;
 	  tmp.Zero();
-	  for(int alto = 2; alto > 0; alto-- )
+	  for(int alto = 2; alto > 0; --alto )
 	  {
 		for (int i=0; i<alto; i++)
 		{
@@ -2075,15 +2087,13 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 			 tmp = maxPoint[i]; 
 			 maxPoint[i] = maxPoint[i+1]; 
 			 maxPoint[i+1] = tmp;
-		   }
-		   if(cylinders[i] < cylinders[i+1])
-		   {
 			 intTmp = cylinders[i]; 
 			 cylinders[i] = cylinders[i+1]; 
 			 cylinders[i+1] = intTmp;
 		   }
 		}	
 	  }
+
 	  /****************/
 	  /*FIND THE LAYER*/
 	  /****************/
@@ -2094,14 +2104,566 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 
 	  for(int i = 0; i < 3; i++)
 	  {
-		  CRhinoObjectAttributes atts( objects[ cylinders[i] ]->Attributes() );
-		  atts.m_layer_index = Cyl_layer_index[i];
-		  CRhinoObjRef ref(objects[ cylinders[i] ]);
-		  context.m_doc.ModifyObjectAttributes(ref, atts);
+		CRhinoObjectAttributes atts( objects[ cylinders[i] ]->Attributes() );
+		atts.m_layer_index = Cyl_layer_index[i];
+		CRhinoObjRef ref(objects[ cylinders[i] ]);
+		context.m_doc.ModifyObjectAttributes(ref, atts);
+		/**********************************/
+		/*SET NAME OF THREE CYLINDER PARTS*/
+		/**********************************/
+		if(i == 0)
+		{
+			ON_3dmObjectAttributes obj_attribs = objects[ cylinders[i] ]->Attributes();
 
+			/*************************************/
+			/*MODIFY THE ATTRIBUTES OF THE OBJECT*/ 
+			/*************************************/
+			obj_attribs.m_name = L"FISSO";
+			const CRhinoObjRef& objref = objects[ cylinders[i] ];
+			context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
+		}
+		if(i == 1)
+		{
+			ON_3dmObjectAttributes obj_attribs = objects[ cylinders[i] ]->Attributes();
+
+			/*************************************/
+			/*MODIFY THE ATTRIBUTES OF THE OBJECT*/ 
+			/*************************************/
+			obj_attribs.m_name = L"MATRICE";
+			const CRhinoObjRef& objref = objects[ cylinders[i] ];
+			context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
+		}
+		if(i == 2)
+		{
+			ON_3dmObjectAttributes obj_attribs = objects[ cylinders[i] ]->Attributes();
+
+			/*************************************/
+			/*MODIFY THE ATTRIBUTES OF THE OBJECT*/ 
+			/*************************************/
+			obj_attribs.m_name = L"FONDELLO";
+			const CRhinoObjRef& objref = objects[ cylinders[i] ];
+			context.m_doc.ModifyObjectAttributes( objref, obj_attribs );
+		}
 	  }
 	  context.m_doc.Redraw();
-	
+
+	  /***************************************/
+	  countCylnds = 0;
+	  countCutter = 0;
+	  for(int i = 0; i < object_count; i++)
+	  {
+		  object = objects[ i ];
+
+		  /**********************************************/
+		  /*MAKE COPY OF OBJECT ATTRIBUTES. THIS OBJECTS*/ 
+		  /*HOLDS AN OBJECT'S USER-DEFINED NAME.*/ 
+		  /**********************************************/
+		  ON_3dmObjectAttributes obj_attribs = object->Attributes();
+		  name = object->Attributes().m_name;
+
+		  surface_obj = CRhinoSurfaceObject::Cast( object );
+		  if( surface_obj && !name.Compare("SURFTOP"))
+		  {
+			ON_SimpleArray<ON_Brep*> pieces;
+			ON_SimpleArray<ON_MassProperties> MassProp;
+			const CRhinoObjRef& split_ref = objects[i];
+			const ON_Brep* split = split_ref.Brep();
+
+			const CRhinoObjRef& cutterTop_ref = objects[ cylinders[1] ];
+			const ON_Brep* cutter = cutterTop_ref.Brep();
+
+			ON_3dPoint maxPoint[2];
+			double     maxArea[2];
+
+		  	if( !RhinoBrepSplit(*split, *cutter, context.m_doc.AbsoluteTolerance(), pieces) )
+			{
+				RhinoApp().Print( L"UNABLE TO SPLIT BREP.\n" );
+			}	
+			else
+			{
+				for(int i = 0; i < pieces.Count(); i++ )
+				{
+					ON_MassProperties* mp = &MassProp.AppendNew();	
+					const ON_Brep* brep = ON_Brep::Cast(pieces[i]);
+					if( brep )
+					{
+						brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
+						maxPoint[i] = MassProp.At(i)->Centroid();
+						MassProp.At(i)->m_mass_type = 2;
+						maxArea[i]  = MassProp.At(i)->Area();
+					}
+				}
+
+				/**************************************/
+				/*FINDING THE MAX VALUE OF OBJECT AREA*/
+				/**************************************/
+				int k = 0;
+				if( sqrt((maxPoint[0].x)*(maxPoint[0].x) + (maxPoint[0].y)*(maxPoint[0].y) + (maxPoint[0].z)*(maxPoint[0].z)) > 
+					sqrt((maxPoint[1].x)*(maxPoint[1].x) + (maxPoint[1].y)*(maxPoint[1].y) + (maxPoint[1].z)*(maxPoint[1].z) ))
+				{
+					k = 0;
+				}
+				else
+				{
+					k = 1;
+				}
+
+				int count = pieces.Count();
+				if( (count == 0) | (count == 1) )
+				{
+					if( count == 1 )
+					{
+						delete pieces[0];
+						continue;
+					}
+					RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(3)!\n" );
+					continue;
+				}
+				CRhinoObjectAttributes attrib = objects[i]->Attributes();
+				attrib.m_uuid = ON_nil_uuid;
+				const CRhinoObjectVisualAnalysisMode* vam_list = objects[i]->m_analysis_mode_list;
+				//for( int k = 0; k < count; k++ )
+				//{
+					CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
+					if( brep_object )
+					{
+						brep_object->SetBrep( pieces[k] );
+						CRhinoObjectAttributes atts( brep_object->Attributes() );
+						atts.m_layer_index = Cyl_layer_index[1];
+						CRhinoObjRef ref(brep_object);
+						context.m_doc.ModifyObjectAttributes(ref, atts);
+
+						/*************************/
+						/*DUPLICATING BREP OBJECT*/
+						/*************************/
+						CRhinoBrepObject* brep_objectDup =  brep_object->Duplicate();
+						if( brep_objectDup )
+						{
+						  if( context.m_doc.AddObject(brep_objectDup) )
+						  {
+							context.m_doc.Redraw();
+							CRhinoObjectAttributes atts1( brep_objectDup->Attributes() );
+							atts1.m_layer_index = Cyl_layer_index[0];
+							CRhinoObjRef ref1(brep_objectDup);
+							context.m_doc.ModifyObjectAttributes(ref1, atts1);
+							context.m_doc.Redraw();
+						  }
+						  else
+						  {
+							delete brep_objectDup;
+						  }
+						}
+
+						if( context.m_doc.AddObject(brep_object) )
+						{
+							RhinoCopyAnalysisModes( vam_list, brep_object );
+						}
+						else
+						{
+							delete brep_object;
+						}
+					}
+				//}
+				context.m_doc.DeleteObject( split_ref ); 
+				context.m_doc.Redraw();
+			}
+		  }/*CHIUSURA IF SUPERFICIE*/
+
+		  if( surface_obj && !name.Compare("SURFBOT"))
+		  {
+		    ON_SimpleArray<ON_Brep*> pieces;
+			ON_SimpleArray<ON_MassProperties> MassProp;
+			const CRhinoObjRef& split_ref = objects[i];
+			const ON_Brep* split = split_ref.Brep();
+
+			const CRhinoObjRef& cutterTop_ref = objects[ cylinders[1] ];
+			const ON_Brep* cutter = cutterTop_ref.Brep();
+
+			ON_3dPoint maxPoint[2];
+			double     maxArea[2];
+
+		  	if( !RhinoBrepSplit(*split, *cutter, context.m_doc.AbsoluteTolerance(), pieces) )
+			{
+				RhinoApp().Print( L"UNABLE TO SPLIT BREP.\n" );
+			}	
+			else
+			{
+				for(int i = 0; i < pieces.Count(); i++ )
+				{
+					ON_MassProperties* mp = &MassProp.AppendNew();	
+					const ON_Brep* brep = ON_Brep::Cast(pieces[i]);
+					if( brep )
+					{
+						brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
+						maxPoint[i] = MassProp.At(i)->Centroid();
+						MassProp.At(i)->m_mass_type = 2;
+						maxArea[i]  = MassProp.At(i)->Area();
+					}
+				}
+
+				/**************************************/
+				/*FINDING THE MAX VALUE OF OBJECT AREA*/
+				/**************************************/
+				int k = 0;
+				if( sqrt((maxPoint[0].x)*(maxPoint[0].x) + (maxPoint[0].y)*(maxPoint[0].y) + (maxPoint[0].z)*(maxPoint[0].z)) > 
+					sqrt((maxPoint[1].x)*(maxPoint[1].x) + (maxPoint[1].y)*(maxPoint[1].y) + (maxPoint[1].z)*(maxPoint[1].z) ))
+				{
+					k = 0;
+				}
+				else
+				{
+					k = 1;
+				}
+
+				int count = pieces.Count();
+				if( (count == 0) | (count == 1) )
+				{
+					if( count == 1 )
+					{
+						delete pieces[0];
+						continue;
+					}
+					RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(3)!\n" );
+					continue;
+				}
+				CRhinoObjectAttributes attrib = objects[i]->Attributes();
+				attrib.m_uuid = ON_nil_uuid;
+				const CRhinoObjectVisualAnalysisMode* vam_list = objects[i]->m_analysis_mode_list;
+				//for( int k = 0; k < count; k++ )
+				//{
+					CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
+					if( brep_object )
+					{
+						brep_object->SetBrep( pieces[k] );
+						CRhinoObjectAttributes atts( brep_object->Attributes() );
+						atts.m_layer_index = Cyl_layer_index[1];
+						CRhinoObjRef ref(brep_object);
+						context.m_doc.ModifyObjectAttributes(ref, atts);
+
+						/*************************/
+						/*DUPLICATING BREP OBJECT*/
+						/*************************/
+						CRhinoBrepObject* brep_objectDup =  brep_object->Duplicate();
+						if( brep_objectDup )
+						{
+						  if( context.m_doc.AddObject(brep_objectDup) )
+						  {
+							CRhinoObjectAttributes atts1( brep_objectDup->Attributes() );
+							atts1.m_layer_index = Cyl_layer_index[2];
+							CRhinoObjRef ref1(brep_objectDup);
+							context.m_doc.ModifyObjectAttributes(ref1, atts1);
+							context.m_doc.Redraw();
+						  }
+						  else
+						  {
+							delete brep_objectDup;
+						  }
+						}
+
+						if( context.m_doc.AddObject(brep_object))
+						{
+							RhinoCopyAnalysisModes( vam_list, brep_object );
+						}
+						else
+						{
+							delete brep_object;
+						}
+					}
+				//}
+				context.m_doc.DeleteObject( split_ref ); 
+				context.m_doc.Redraw();
+			}/*CHIUSURA ELSE*/
+		  }/*CHIUSURA IF SUPERFICIE*/
+		 
+	  }/*CHIUSURA LOOP SUGLI OGGETTI*/	
+
+
+	  /**********************************/
+	  /*USING CORONA CURVE TO TRIM PLANE*/
+	  /**********************************/
+	  ON_SimpleArray<CRhinoObject*> objects2;
+	  int object_count2;
+	  int layer_indexFISSO  = context.m_doc.m_layer_table.FindLayer(L"FISSO");
+	  int layer_indexCORONA = context.m_doc.m_layer_table.FindLayer(L"CORONA");
+
+	  context.m_doc.m_layer_table.SetCurrentLayerIndex(layer_indexCORONA);	  
+	  object_count2 = context.m_doc.LookupObject( context.m_doc.m_layer_table.CurrentLayer(), objects2 );
+
+	  context.m_doc.m_layer_table.SetCurrentLayerIndex(layer_indexFISSO);
+  	  objects.Empty();
+	  object_count = context.m_doc.LookupObject( context.m_doc.m_layer_table.CurrentLayer(), objects );
+
+
+	  ON_Layer currentLayer;
+	  int numLayers = context.m_doc.m_layer_table.LayerCount();
+	  for(int i = 0; i < numLayers; i++)
+	  {
+		  if(i != layer_indexFISSO)
+		  {
+			  currentLayer = context.m_doc.m_layer_table[i];
+			  currentLayer.SetVisible(false);
+			  context.m_doc.m_layer_table.ModifyLayer(currentLayer, i);
+		  }
+
+	  }
+	  currentLayer = context.m_doc.m_layer_table[layer_indexCORONA];
+	  currentLayer.SetVisible(true);
+	  context.m_doc.m_layer_table.ModifyLayer(currentLayer, layer_indexCORONA);
+	  
+	  context.m_doc.Redraw();
+	  bool FindingSurf = false;
+	  bool FindingCurv = false;
+	  int  IndexSurf = 0;
+	  int  IndexCurv = 0;
+      ON_SimpleArray<ON_Brep*> pieces;
+
+	  for(int i = 0; i < object_count; i++)
+	  {
+		  object = objects[ i ];
+		  //ON_3dmObjectAttributes obj_attribs = object->Attributes();
+		  //name = object->Attributes().m_name;
+		  surface_obj = CRhinoSurfaceObject::Cast(object);
+		  if(!object->Attributes().m_name.Compare("SURFTOP"))
+		  {
+			IndexSurf = i;
+			FindingSurf = true;
+		  }
+	  }
+	  for(int i = 0; i < object_count2; i++)
+	  {
+		  object = objects2[ i ];
+		  //ON_3dmObjectAttributes obj_attribs = object->Attributes();
+		  //name = object->Attributes().m_name;
+		  curve_obj   = CRhinoCurveObject::Cast( object );
+  		  if(curve_obj)
+		  {
+			IndexCurv = i;
+			FindingCurv = true;
+		  }
+
+	  }
+	  //ON_Brep* BrepResult;
+	  //const ON_Surface* srf = ON_Surface::Cast(objects[IndexSurf]);
+	  //ON_Curve* pippo = ON_Curve::Cast(objects[IndexSurf]);
+	  //const ON_SimpleArray<ON_Curve*> EdgeCurves(1);
+	  //ON_Curve* pi;
+	  //EdgeCurves.Insert(0, pi);
+	  ////EdgeCurves.Append(pippo);
+	  ////ON_SimpleArray<ON_Brep*> Breps;
+	  //
+	  ////RhinoCutUpSurface(*srf, true, EdgeCurves, context.m_doc.AbsoluteTolerance(), 2*context.m_doc.AbsoluteTolerance(), Breps);
+
+
+	  int R = 0;
+	  if(FindingSurf && FindingCurv)
+	  {
+		const CRhinoObjRef& split_ref = objects[ IndexSurf ];
+		const ON_Brep* split = split_ref.Brep();
+		if( !split )
+		{
+			RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(1)!\n" );
+			return failure;
+		}
+		//ON_SimpleArray<ON_Brep*> pieces;
+		//pieces.Empty();
+		//double tol = context.m_doc.AbsoluteTolerance();
+		//const CRhinoObjRef& cutterTop_ref = objects2[ IndexCurv ];
+		//const ON_Brep* cutter = cutterTop_ref.Brep();
+		//if( !cutter )
+		//{
+		//	RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(2)!\n" );
+		//	return failure;
+		//}
+
+		//ON_3dPoint maxPoint[2];
+		//double     maxArea[2];
+		ON_Brep* BrepResult;
+		ON_SimpleArray<const ON_Curve*> EdgeCurves;
+		const ON_Curve* pippo = ON_Curve::Cast(objects2[IndexCurv]);
+		objects2[IndexCurv]->Highlight(true);
+		objects[IndexSurf]->Highlight(true);
+		EdgeCurves.Append(pippo);
+		int num2 = split->m_F.Count();
+		BrepResult = RhinoSplitBrepFace(*split, 0, EdgeCurves, context.m_doc.AbsoluteTolerance());
+		int num = BrepResult->m_F.Count();
+		if(BrepResult)
+		{
+			if(context.m_doc.AddBrepObject(*BrepResult))
+			{
+				context.m_doc.Redraw();
+			}
+			else
+			{
+				delete BrepResult;
+			}			
+		}
+
+	 // 	if( !RhinoBrepSplit(*split, *cutter, context.m_doc.AbsoluteTolerance(), pieces) )
+		//{
+		//	RhinoApp().Print( L"UNABLE TO SPLIT BREP.\n" );
+		//}
+		//else
+		//{
+		//	for(int i = 0; i < pieces.Count(); i++ )
+		//	{
+		//		ON_MassProperties* mp = &MassProp.AppendNew();	
+		//		const ON_Brep* brep = ON_Brep::Cast(pieces[i]);
+		//		if( brep )
+		//		{
+		//			brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
+		//			maxPoint[i] = MassProp.At(i)->Centroid();
+		//			MassProp.At(i)->m_mass_type = 2;
+		//			maxArea[i]  = MassProp.At(i)->Area();
+		//		}
+		//	}
+		//	/**************************************/
+		//	/*FINDING THE MAX VALUE OF OBJECT AREA*/
+		//	/**************************************/
+		//	int k = 1;
+		//	if( maxArea[0] > maxArea[1] )
+		//	{
+		//		k = 0;
+		//	}
+		//	int count = pieces.Count();
+		//	if( (count == 0) | (count == 1) )
+		//	{
+		//		if( count == 1 )
+		//		{
+		//			delete pieces[0];
+		//		}
+		//		RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(3)!\n" );
+		//	}
+		//	CRhinoObjectAttributes attrib = objects[IndexSurf]->Attributes();
+		//	attrib.m_uuid = ON_nil_uuid;
+		//	const CRhinoObjectVisualAnalysisMode* vam_list = objects[IndexSurf]->m_analysis_mode_list;
+		//	CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
+		//	if( brep_object )
+		//	{
+		//		brep_object->SetBrep( pieces[k] );
+		//		//CRhinoObjectAttributes atts( brep_object->Attributes() );
+		//		//atts.m_layer_index = Cyl_layer_index[1];
+		//		//CRhinoObjRef ref(brep_object);
+		//		//context.m_doc.ModifyObjectAttributes(ref, atts);
+
+		//		/*************************/
+		//		/*DUPLICATING BREP OBJECT*/
+		//		/*************************/
+		//		//CRhinoBrepObject* brep_objectDup =  brep_object->Duplicate();
+		//		//if( brep_objectDup )
+		//		//{
+		//		//  if( context.m_doc.AddObject(brep_objectDup) )
+		//		//  {
+		//		//	CRhinoObjectAttributes atts1( brep_objectDup->Attributes() );
+		//		//	atts1.m_layer_index = Cyl_layer_index[2];
+		//		//	CRhinoObjRef ref1(brep_objectDup);
+		//		//	context.m_doc.ModifyObjectAttributes(ref1, atts1);
+		//		//	context.m_doc.Redraw();
+		//		//  }
+		//		//  else
+		//		//  {
+		//		//	delete brep_objectDup;
+		//		//  }
+		//		//}
+
+		//		if( context.m_doc.AddObject(brep_object))
+		//		{
+		//			RhinoCopyAnalysisModes( vam_list, brep_object );
+		//		}
+		//		else
+		//		{
+		//			delete brep_object;
+		//		}
+		//	}
+		//	context.m_doc.DeleteObject( split_ref ); 
+		//	context.m_doc.Redraw();
+		//}/*CHIUSURA ELSE !RHINOBREPSPLIT(*SPLIT, *CUTTER, CONTEXT.M_DOC.ABSOLUTETOLERANCE(), PIECES)*/
+	  }
+
+
+
+	  /*************************/
+	  /*UNION BOOLEAN OPERATION*/
+	  /*************************/
+	 // CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+	 // layer_index = layer_table.FindLayer(L"FISSO");
+	 // layer_table.SetCurrentLayerIndex(layer_index);
+	 // objects.Empty();
+	 // object_count = context.m_doc.LookupObject( context.m_doc.m_layer_table.CurrentLayer(), objects );
+	 // ON_SimpleArray<const ON_Brep*> InBreps( object_count );
+	 // for(int i = 0; i < object_count; i++ )
+	 // {
+		//const ON_Brep* brep = ON_Brep::Cast(objects[i]->Geometry());
+		//if( brep )
+		//{
+		//  InBreps.Append( brep );
+		//}
+	 // }
+	 // ON_SimpleArray<ON_Brep*> OutBreps;
+	 // bool something_happened = false;
+	 // double tolerance = context.m_doc.AbsoluteTolerance()*10;
+
+	 // bool rc = RhinoBooleanUnion( InBreps, tolerance, &something_happened, OutBreps);
+	 // if( !rc | !something_happened )
+	 // {
+		//for(int i = 0; i < OutBreps.Count(); i++ )
+		//{
+		//  delete OutBreps[i];
+		//  OutBreps[i] = 0;
+		//}
+		//return nothing;
+	 // }
+	 // for(int i = 0; i < OutBreps.Count(); i++ )
+	 // {
+		//ON_Brep* brep   = OutBreps[i];
+		//if( brep )
+		//{
+		//  context.m_doc.AddBrepObject( *brep );
+		//  brep = 0;
+		//  delete OutBreps[i];
+		//  OutBreps[i] = 0;
+		//}
+	 // }
+	 // for(int i = 0; i < InBreps.Count(); i++ )
+	 // {
+		//context.m_doc.DeleteObject(objects[i]);
+	 // }
+
+	 // context.m_doc.Redraw();
+
+	  ///**********************/
+	  ///*DIVIDING MATRIX PART*/
+	  ///**********************/
+	  //objects.Empty();
+	  //object_count = context.m_doc.LookupObject( context.m_doc.m_layer_table.CurrentLayer(), objects );
+	  //for( int i = 0; i < objects.Count(); i++)
+	  //{
+		 // object = objects[i];
+
+		 // /**********************************************/
+		 // /*MAKE COPY OF OBJECT ATTRIBUTES. THIS OBJECTS*/ 
+		 // /*HOLDS AN OBJECT'S USER-DEFINED NAME.*/ 
+		 // /**********************************************/
+
+		 // curve_obj = CRhinoCurveObject::Cast( object );
+
+		 // if(curve_obj && !object->Attributes().m_name.Compare(L"FONDLine"))
+		 // {
+			//const ON_Geometry* geo = curve_obj->Geometry();
+		 //   const ON_Curve* pCurve = ON_Curve::Cast(geo); 
+
+			//int nIndex = plugin.m_dialog->m_comboAltTacco.GetCurSel();
+			//CString strCBText;
+			//plugin.m_dialog->m_comboAltTacco.GetLBText( nIndex, strCBText);
+			//layer_index = context.m_doc.m_layer_table.FindLayer(L"MATRICE");
+			//context.m_doc.m_layer_table.SetCurrentLayerIndex(layer_index);
+			//ON_Surface* Split_Plane = RhinoExtrudeCurveStraight(pCurve, ON_3dVector(0.0, 0.0, _wtoi(strCBText)), 1.0);
+			//if(context.m_doc.AddSurfaceObject(*Split_Plane))
+			//{
+			//	context.m_doc.Redraw();
+			//}
+		 // }
+	  //}
+
 	return CRhinoCommand::success;
 }
 
