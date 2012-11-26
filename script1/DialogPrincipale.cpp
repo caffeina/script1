@@ -307,6 +307,8 @@ void DialogPrincipale::OnEnChangeRichedit21()
 void DialogPrincipale::OnBnClickedButton2()
 {
 	GetDlgItem(IDC_BUTTON8)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON3)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON14)->EnableWindow(TRUE);
 	UpdateData(true);
 	RhinoApp().RunScript( L"! _GenCylinder", 0 );
 }

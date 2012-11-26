@@ -1149,6 +1149,7 @@ CRhinoCommand::result CTraslRuota::RunCommand( const CRhinoCommandContext& conte
 	CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
 	ON_Layer currentLayer;
 	int numLayers = layer_table.LayerCount();
+	ON_wString name;
 
 	for(int i = 0; i < numLayers; i++)
 	{
@@ -1184,9 +1185,11 @@ CRhinoCommand::result CTraslRuota::RunCommand( const CRhinoCommandContext& conte
 		  ON_SimpleArray<CRhinoObject*> obj_list;
 		  int j, obj_count = context.m_doc.LookupObject( layer2, obj_list );
 		  for( j = 0; j < obj_count; j++ )
-		  {
-				  CRhinoObject* obj = obj_list[j];
-				  if( obj && obj->IsSelectable() )
+		  {	  
+			  CRhinoObject* obj = obj_list[j];
+			  ON_3dmObjectAttributes obj_attribs = obj->Attributes();
+				name = obj->Attributes().m_name;
+				  if( obj && obj->IsSelectable() && name.Compare("CILINDRO") )
 					  obj->Select();
 				  if( obj_count )
 					context.m_doc.Redraw();
