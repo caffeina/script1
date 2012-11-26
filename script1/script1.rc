@@ -251,7 +251,7 @@ END
 // Bitmap
 //
 
-IDB_BITMAP4             BITMAP                  "C:\\Users\\Pietro\\Documents\\GitHub\\PluginMonti\\script1\\script1\\pv.bmp"
+IDB_BITMAP4             BITMAP                  ".\pv.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
