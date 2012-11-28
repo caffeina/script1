@@ -1079,7 +1079,258 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			else{
 				::RhinoApp().Print( L"Funzione controllo altezza NOK: CONTROLLARE!! Il valore della testa e' minore del valore minimo di 10 mm. Occorre diminuire l'altezza del fondello o aumentare l'altezza dello stampo.");
 			}
+			// INIZIO SPINE DI CENTRAGGIO
+			ON_3dPoint PT_SPINA_1_1(50.0,0,0);
+			ON_3dPoint PT_SPINA_2_1(-50.0,0,0);
+			ON_3dPoint PT_SPINA_1_2(50.0,0,130);
+			ON_3dPoint PT_SPINA_2_2(-50.0,0,150);
 
+			ON_Line Linea_Intersezione_1(PT_SPINA_1_1,PT_SPINA_1_2);
+			ON_Line Linea_Intersezione_2(PT_SPINA_2_1,PT_SPINA_2_2);
+
+			const ON_LineCurve* crvSpina1 = new ON_LineCurve(Linea_Intersezione_1);
+			const ON_LineCurve* crvSpina2 = new ON_LineCurve(Linea_Intersezione_2);
+			
+			
+			  CRhinoGetObject go;
+			  go.SetCommandPrompt( L"Seleziona la linea originale del Piano Visionale" );
+			  go.SetGeometryFilter( ON::curve_object );
+			  go.GetObjects( 1, 1 );
+			  if( go.CommandResult() != CRhinoCommand::success )
+				return go.CommandResult();
+			 
+			  // Validate input
+			  const ON_Curve* curveA = go.Object(0).Curve();
+			  const ON_Curve* curveB = crvSpina1;
+			  const ON_Curve* curveC = crvSpina2;
+				 
+			  if( (0 == curveA) | (0 == curveB) )
+				return CRhinoCommand::failure;
+			 
+			  // Calculate the intersection
+			  double intersection_tolerance = 0.001;
+			  double overlap_tolerance = 0.0;
+			  ON_SimpleArray<ON_X_EVENT> events;
+			  int count = curveA->IntersectCurve(
+					curveB, 
+					events, 
+					intersection_tolerance, 
+					overlap_tolerance
+					);
+			 
+			  ON_3dPoint PuntoIntersezione;
+			  // Process the results
+			  if( count > 0 )
+			  {
+				  ::RhinoApp().Print( L"Intersezione punto per Piano Visionale Spina Centraggio trovato");
+				  
+				int i;
+				for( i = 0; i < events.Count(); i++ )
+				{
+				  const ON_X_EVENT& e = events[i];
+				  //context.m_doc.AddPointObject( e.m_A[0] );
+					PuntoIntersezione = e.m_B[0];
+					//context.m_doc.AddPointObject( e.m_B[0] );
+				  /*if( e.m_A[0].DistanceTo(e.m_B[0]) > ON_EPSILON )
+				  {
+					
+					context.m_doc.AddCurveObject( ON_Line(e.m_A[0], e.m_B[0]) );
+					
+				  }*/
+				}
+				
+
+				context.m_doc.Redraw();
+			  }
+			 
+
+				// second time
+			   events =0;
+			   count = 0;
+			   count = curveA->IntersectCurve(
+					curveC, 
+					events, 
+					intersection_tolerance, 
+					overlap_tolerance
+					);
+			 
+			  ON_3dPoint PuntoIntersezione2;
+			  // Process the results
+			  if( count > 0 )
+			  {
+				  ::RhinoApp().Print( L"Intersezione punto per Piano Visionale Spina Centraggio trovato");
+				  
+				int i;
+				for( i = 0; i < events.Count(); i++ )
+				{
+				  const ON_X_EVENT& e = events[i];
+				  //context.m_doc.AddPointObject( e.m_A[0] );
+					PuntoIntersezione2 = e.m_B[0];
+					//context.m_doc.AddPointObject( e.m_B[0] );
+				  /*if( e.m_A[0].DistanceTo(e.m_B[0]) > ON_EPSILON )
+				  {
+					
+					context.m_doc.AddCurveObject( ON_Line(e.m_A[0], e.m_B[0]) );
+					
+				  }*/
+				}
+				
+
+				context.m_doc.Redraw();
+			  }
+			 
+			 
+			CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+	  const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
+			ON_SimpleArray<const ON_Curve*> lines;
+			ON_SimpleArray<CRhinoObject*> objectsLine;
+			
+			int LinesCount = context.m_doc.LookupObject( layer, objectsLine);
+
+			for(int i = 0; i < LinesCount; i++ )
+			{
+				if (
+					(!objectsLine[i]->Attributes().m_name.Compare("SPINACIRCLE1")) ||
+					(!objectsLine[i]->Attributes().m_name.Compare("SPINACIRCLE2")) ||
+					(!objectsLine[i]->Attributes().m_name.Compare("SPINACIRCLE3"))  ||
+					(!objectsLine[i]->Attributes().m_name.Compare("SPINACIRCLE4"))  ||
+					(!objectsLine[i]->Attributes().m_name.Compare("SPINALINEA1"))  ||
+					(!objectsLine[i]->Attributes().m_name.Compare("SPINALINEA2"))  ||
+					(!objectsLine[i]->Attributes().m_name.Compare("SPINALINEA3"))  ||
+					(!objectsLine[i]->Attributes().m_name.Compare("SPINALINEA4"))
+					
+					)
+						{
+						context.m_doc.DeleteObject(objectsLine[i]);
+						}
+			}
+			context.m_doc.Redraw();
+	  
+			
+			ON_Circle SpinaCircle1( PuntoIntersezione, 4 );
+			ON_Circle SpinaCircle2( PuntoIntersezione2, 4 );
+			ON_Circle SpinaCircle3( PT_SPINA_1_1, 4 );
+			ON_Circle SpinaCircle4( PT_SPINA_2_1, 4 );
+			
+			unsigned int first_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			CRhinoCurveObject* curve_spina1 = context.m_doc.AddCurveObject( SpinaCircle1 );
+			unsigned int next_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+			  if( first_sn1 == next_sn1 )
+				return CRhinoCommand::nothing;
+			  else
+			  {
+				  ON_wString obj_name = L"SPINACIRCLE1";
+				  SetNametoObject(context.m_doc,first_sn1,obj_name,true);			  
+			  }
+			unsigned int first_sn2 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			CRhinoCurveObject* curve_spina2 = context.m_doc.AddCurveObject( SpinaCircle2 );
+			unsigned int next_sn2 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+			  if( first_sn2 == next_sn2 )
+				return CRhinoCommand::nothing;
+			  else
+			  {
+				  ON_wString obj_name = L"SPINACIRCLE2";
+				  SetNametoObject(context.m_doc,first_sn2,obj_name,true);			  
+			  }
+			unsigned int first_sn3 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			CRhinoCurveObject* curve_spina3 = context.m_doc.AddCurveObject( SpinaCircle3 );
+			unsigned int next_sn3 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+			  if( first_sn3 == next_sn3 )
+				return CRhinoCommand::nothing;
+			  else
+			  {
+				  ON_wString obj_name = L"SPINACIRCLE3";
+				  SetNametoObject(context.m_doc,first_sn3,obj_name,true);			  
+			  }
+			unsigned int first_sn4 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			CRhinoCurveObject* curve_spina4 = context.m_doc.AddCurveObject( SpinaCircle4 );
+			unsigned int next_sn4 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+			  if( first_sn4 == next_sn4 )
+				return CRhinoCommand::nothing;
+			  else
+			  {
+				  ON_wString obj_name = L"SPINACIRCLE4";
+				  SetNametoObject(context.m_doc,first_sn4,obj_name,true);			  
+			  }
+			context.m_doc.Redraw();
+			ON_3dPoint offset(0,0,12.5);
+			ON_LineCurve curvaSpina1;
+			
+			
+			
+			curvaSpina1.SetStartPoint(PT_SPINA_1_1-offset);
+			ON_3dPoint endpoint1(PT_SPINA_1_1+offset);
+			curvaSpina1.SetEndPoint(endpoint1);
+
+			ON_LineCurve curvaSpina2;
+			curvaSpina2.SetStartPoint(PT_SPINA_2_1-offset);
+			ON_3dPoint endpoint2(PT_SPINA_2_1+offset);
+			curvaSpina2.SetEndPoint(endpoint2);
+
+			ON_LineCurve curvaSpina3;
+			curvaSpina3.SetStartPoint(PuntoIntersezione-offset);
+			ON_3dPoint endpoint3(PuntoIntersezione+offset);
+			curvaSpina3.SetEndPoint(endpoint3);
+			
+			ON_LineCurve curvaSpina4;
+			curvaSpina4.SetStartPoint(PuntoIntersezione2-offset);
+			ON_3dPoint endpoint4(PuntoIntersezione2+offset);
+			curvaSpina4.SetEndPoint(endpoint4);
+
+			//const CRhinoObjRef& objref = gc.Object(0);
+		/*const ON_Curve* pC = ON_Curve::Cast( curvaSpina1 );
+		ON_Curve* crv1 = pC->DuplicateCurve();
+			bool rc1 = RhinoExtendCurve(crv1, CRhinoExtend::Line, 0,12.5 );*/
+			unsigned int first_sn_spina1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			context.m_doc.AddCurveObject(curvaSpina1);
+			unsigned int next_sn_spina1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+			  if( first_sn_spina1 == next_sn_spina1 )
+				return CRhinoCommand::nothing;
+			  else
+			  {
+				  ON_wString obj_name = L"SPINALINEA1";
+				  SetNametoObject(context.m_doc,first_sn_spina1,obj_name,true);			  
+			  }
+			  unsigned int first_sn_spina2 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			context.m_doc.AddCurveObject(curvaSpina2);
+			unsigned int next_sn_spina2 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+			  if( first_sn_spina2 == next_sn_spina2 )
+				return CRhinoCommand::nothing;
+			  else
+			  {
+				  ON_wString obj_name = L"SPINALINEA2";
+				  SetNametoObject(context.m_doc,first_sn_spina2,obj_name,true);			  
+			  }
+			unsigned int first_sn_spina3 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			context.m_doc.AddCurveObject(curvaSpina3);
+			unsigned int next_sn_spina3 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+			  if( first_sn_spina3 == next_sn_spina3 )
+				return CRhinoCommand::nothing;
+			  else
+			  {
+				  ON_wString obj_name = L"SPINALINEA3";
+				  SetNametoObject(context.m_doc,first_sn_spina3,obj_name,true);			  
+			  }
+		  unsigned int first_sn_spina4 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			context.m_doc.AddCurveObject(curvaSpina4);
+			unsigned int next_sn_spina4 = CRhinoObject::NextRuntimeObjectSerialNumber();
+			  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+			  if( first_sn_spina4 == next_sn_spina4 )
+				return CRhinoCommand::nothing;
+			  else
+			  {
+				  ON_wString obj_name = L"SPINALINEA4";
+				  SetNametoObject(context.m_doc,first_sn_spina4,obj_name,true);			  
+			  }
+			context.m_doc.Redraw();
+			// FINE SPINE DI CENTRAGGIO
 
 
 		  return CRhinoCommand::success;
