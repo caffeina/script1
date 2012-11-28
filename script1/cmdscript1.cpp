@@ -1966,6 +1966,10 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  /********************/
 	  /*CREATE A NEW LAYER*/
 	  /********************/
+
+	  /****************************************/
+	  /*ADD THE LAYER FISSO TO THE LAYER TABLE*/
+	  /****************************************/
 	  ON_Layer layer2;
 	  int layer_index = 0;
 	  ON_Color color = ON_Color(255, 0, 0);
@@ -1973,9 +1977,9 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  layer2.SetLayerName( layer_name_FONDELLO );
 	  layer2.SetColor(color);
 
-	  /**********************************/
-	  /*ADD THE LAYER TO THE LAYER TABLE*/
-	  /**********************************/
+	  /******************************************/
+	  /*ADD THE LAYER MATRICE TO THE LAYER TABLE*/
+	  /******************************************/
 	  layer_index = context.m_doc.m_layer_table.AddLayer( layer2 );
 
 	  color.SetRGB(0, 255, 0);
@@ -1983,9 +1987,9 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  layer2.SetLayerName( layer_name_MATRICE );
 	  layer2.SetColor(color);
 
-	  /**********************************/
-	  /*ADD THE LAYER TO THE LAYER TABLE*/
-	  /**********************************/
+	  /*******************************************/
+	  /*ADD THE LAYER FONDELLO TO THE LAYER TABLE*/
+	  /*******************************************/
 	  layer_index = context.m_doc.m_layer_table.AddLayer( layer2 );
 
 	  color.SetRGB(0, 0, 255);
@@ -2151,6 +2155,8 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  context.m_doc.Redraw();
 
 	  /***************************************/
+	  /***************************************/
+	  /***************************************/
 	  countCylnds = 0;
 	  countCutter = 0;
 	  for(int i = 0; i < object_count; i++)
@@ -2225,48 +2231,24 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 				CRhinoObjectAttributes attrib = objects[i]->Attributes();
 				attrib.m_uuid = ON_nil_uuid;
 				const CRhinoObjectVisualAnalysisMode* vam_list = objects[i]->m_analysis_mode_list;
-				//for( int k = 0; k < count; k++ )
-				//{
-					CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
-					if( brep_object )
+				CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
+				if( brep_object )
+				{
+					brep_object->SetBrep( pieces[k] );
+					CRhinoObjectAttributes atts( brep_object->Attributes() );
+					atts.m_layer_index = Cyl_layer_index[1];
+					CRhinoObjRef ref(brep_object);
+					context.m_doc.ModifyObjectAttributes(ref, atts);
+
+					if( context.m_doc.AddObject(brep_object) )
 					{
-						brep_object->SetBrep( pieces[k] );
-						CRhinoObjectAttributes atts( brep_object->Attributes() );
-						atts.m_layer_index = Cyl_layer_index[1];
-						CRhinoObjRef ref(brep_object);
-						context.m_doc.ModifyObjectAttributes(ref, atts);
-
-						/*************************/
-						/*DUPLICATING BREP OBJECT*/
-						/*************************/
-						CRhinoBrepObject* brep_objectDup =  brep_object->Duplicate();
-						if( brep_objectDup )
-						{
-						  if( context.m_doc.AddObject(brep_objectDup) )
-						  {
-							context.m_doc.Redraw();
-							CRhinoObjectAttributes atts1( brep_objectDup->Attributes() );
-							atts1.m_layer_index = Cyl_layer_index[0];
-							CRhinoObjRef ref1(brep_objectDup);
-							context.m_doc.ModifyObjectAttributes(ref1, atts1);
-							context.m_doc.Redraw();
-						  }
-						  else
-						  {
-							delete brep_objectDup;
-						  }
-						}
-
-						if( context.m_doc.AddObject(brep_object) )
-						{
-							RhinoCopyAnalysisModes( vam_list, brep_object );
-						}
-						else
-						{
-							delete brep_object;
-						}
+						RhinoCopyAnalysisModes( vam_list, brep_object );
 					}
-				//}
+					else
+					{
+						delete brep_object;
+					}
+				}
 				context.m_doc.DeleteObject( split_ref ); 
 				context.m_doc.Redraw();
 			}
@@ -2332,47 +2314,41 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 				CRhinoObjectAttributes attrib = objects[i]->Attributes();
 				attrib.m_uuid = ON_nil_uuid;
 				const CRhinoObjectVisualAnalysisMode* vam_list = objects[i]->m_analysis_mode_list;
-				//for( int k = 0; k < count; k++ )
-				//{
-					CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
-					if( brep_object )
+				CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
+				if( brep_object )
+				{
+					brep_object->SetBrep( pieces[k] );
+					CRhinoObjectAttributes atts( brep_object->Attributes() );
+					atts.m_layer_index = Cyl_layer_index[1];
+					CRhinoObjRef ref(brep_object);
+					context.m_doc.ModifyObjectAttributes(ref, atts);
+
+					/****************************************/
+					/*DUPLICATING VISIONAL PLANE OF FONDELLO*/
+					/****************************************/
+					//CRhinoBrepObject* brep_objectDup =  brep_object->Duplicate();
+					//if( brep_objectDup )
+					//{
+					//  if( context.m_doc.AddBrepObject(*brep_objectDup->Brep()) )
+					//  {
+					//	CRhinoObjectAttributes atts1( brep_object->Attributes() );
+					//	atts1.m_layer_index = Cyl_layer_index[1];
+					//	CRhinoObjRef ref1(brep_objectDup);
+					//	context.m_doc.ModifyObjectAttributes(ref1, atts1);
+					//	context.m_doc.Redraw();
+					//  }
+					//}	
+					
+
+					if( context.m_doc.AddObject(brep_object))
 					{
-						brep_object->SetBrep( pieces[k] );
-						CRhinoObjectAttributes atts( brep_object->Attributes() );
-						atts.m_layer_index = Cyl_layer_index[1];
-						CRhinoObjRef ref(brep_object);
-						context.m_doc.ModifyObjectAttributes(ref, atts);
-
-						/*************************/
-						/*DUPLICATING BREP OBJECT*/
-						/*************************/
-						CRhinoBrepObject* brep_objectDup =  brep_object->Duplicate();
-						if( brep_objectDup )
-						{
-						  if( context.m_doc.AddObject(brep_objectDup) )
-						  {
-							CRhinoObjectAttributes atts1( brep_objectDup->Attributes() );
-							atts1.m_layer_index = Cyl_layer_index[2];
-							CRhinoObjRef ref1(brep_objectDup);
-							context.m_doc.ModifyObjectAttributes(ref1, atts1);
-							context.m_doc.Redraw();
-						  }
-						  else
-						  {
-							delete brep_objectDup;
-						  }
-						}
-
-						if( context.m_doc.AddObject(brep_object))
-						{
-							RhinoCopyAnalysisModes( vam_list, brep_object );
-						}
-						else
-						{
-							delete brep_object;
-						}
+						RhinoCopyAnalysisModes( vam_list, brep_object );
 					}
-				//}
+					else
+					{
+						delete brep_object;
+					}
+				}
 				context.m_doc.DeleteObject( split_ref ); 
 				context.m_doc.Redraw();
 			}/*CHIUSURA ELSE*/
@@ -2385,9 +2361,14 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  /*USING CORONA CURVE TO TRIM PLANE*/
 	  /**********************************/
 	  ON_SimpleArray<CRhinoObject*> objects2;
+	  ON_SimpleArray<CRhinoObject*> objects3;
 	  int object_count2;
-	  int layer_indexFISSO  = context.m_doc.m_layer_table.FindLayer(L"FISSO");
-	  int layer_indexCORONA = context.m_doc.m_layer_table.FindLayer(L"CORONA");
+	  int object_count3;
+	  int layer_indexMATRICE   = context.m_doc.m_layer_table.FindLayer(L"MATRICE");
+	  int layer_indexCORONA    = context.m_doc.m_layer_table.FindLayer(L"CORONA");
+  	  int layer_indexPIASTRINO = context.m_doc.m_layer_table.FindLayer(L"PIASTRINO");
+	  int layer_indexFISSO     = context.m_doc.m_layer_table.FindLayer(L"FISSO");
+
 
 	  if(layer_indexCORONA > 0)
 	  {
@@ -2396,11 +2377,18 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 		  context.m_doc.m_layer_table.SetCurrentLayerIndex(layer_indexCORONA);	  
 		  object_count2 = context.m_doc.LookupObject( layer, objects2 );
 	  }
-	  if(layer_indexCORONA > 0)
+	  if(layer_indexPIASTRINO > 0)
+	  {
+		  objects3.Empty();
+		  const CRhinoLayer& layer = context.m_doc.m_layer_table[layer_indexPIASTRINO];
+		  context.m_doc.m_layer_table.SetCurrentLayerIndex(layer_indexPIASTRINO);	  
+		  object_count3 = context.m_doc.LookupObject( layer, objects3 );
+	  }
+	  if(layer_indexMATRICE > 0)
 	  {
 		  objects.Empty();
-		  const CRhinoLayer& layer = context.m_doc.m_layer_table[layer_indexFISSO];
-		  context.m_doc.m_layer_table.SetCurrentLayerIndex(layer_indexFISSO);	  
+		  const CRhinoLayer& layer = context.m_doc.m_layer_table[layer_indexMATRICE];
+		  context.m_doc.m_layer_table.SetCurrentLayerIndex(layer_indexMATRICE);	  
 		  object_count = context.m_doc.LookupObject( layer, objects );
 	  }
 
@@ -2408,7 +2396,7 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  int numLayers = context.m_doc.m_layer_table.LayerCount();
 	  for(int i = 0; i < numLayers; i++)
 	  {
-		  if(i != layer_indexFISSO)
+		  if(i != layer_indexMATRICE)
 		  {
 			  currentLayer = context.m_doc.m_layer_table[i];
 			  currentLayer.SetVisible(false);
@@ -2421,15 +2409,19 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  context.m_doc.m_layer_table.ModifyLayer(currentLayer, layer_indexCORONA);
 	  
 	  context.m_doc.Redraw();
-	  bool FindingSurf = false;
-	  bool FindingCurv = false;
-	  int  IndexSurf = 0;
-	  int  IndexCurv = 0;
+	  bool FindingSurf  = false;
+	  bool FindingSurf2 = false;
+	  bool FindingCurv  = false;
+	  bool FindingPias  = false;
+	  int  IndexSurf  = 0;
+	  int  IndexSurf2 = 0;
+	  int  IndexCurv  = 0;
+	  int  IndexPias  = 0;
       ON_SimpleArray<ON_Brep*> pieces;
 
-	  /***************************/
-	  /*FINDING SURFACE "SURFTOP"*/
-	  /***************************/
+	  /*******************************************/
+	  /*FINDING "SURFTOP" AND "SURFBOT" SURFACES */
+	  /*******************************************/
 	  for(int i = 0; i < object_count; i++)
 	  {
 		  object = objects[ i ];
@@ -2438,6 +2430,11 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 		  {
 			IndexSurf = i;
 			FindingSurf = true;
+		  }
+		  if(!object->Attributes().m_name.Compare("SURFBOT"))
+		  {
+			IndexSurf2 = i;
+			FindingSurf2 = true;
 		  }
 	  }
 	  /************************/
@@ -2454,8 +2451,24 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 		  }
 
 	  }
+	  /***************************/
+	  /*FINDING CURVE "PIASTRINO"*/
+	  /***************************/
+	  for(int i = 0; i < object_count3; i++)
+	  {
+		  object = objects3[ i ];
+		  curve_obj   = CRhinoCurveObject::Cast( object );
+  		  if(curve_obj)
+		  {
+			IndexPias = i;
+			FindingPias = true;
+		  }
 
-	  int R = 0;
+	  }
+
+	  /*********************************************/
+	  /*TRIMMING SURFTOP SURFACE USING CORONA CURVE*/
+	  /*********************************************/
 	  if(FindingSurf && FindingCurv)
 	  {
 		const CRhinoObjRef& split_ref = objects[ IndexSurf ];
@@ -2495,9 +2508,21 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 			}
 			if(maxArea[0] > maxArea[1])
 			{
+				first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
 				ON_Brep* face = BrepResult->DuplicateFace(0, false);
-				context.m_doc.AddBrepObject(*face);
-				context.m_doc.Redraw();
+				if(context.m_doc.AddBrepObject(*face))
+				{
+					context.m_doc.Redraw();
+					next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+					if( first_sn == next_sn )
+					{
+						return CRhinoCommand::nothing;
+					}
+					else
+					{
+						SetNametoObject(context.m_doc,first_sn, L"SURFTOP",true);	
+					}
+				}
 			}
 			else
 			{
@@ -2508,90 +2533,129 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 			context.m_doc.DeleteObject(split_ref);
 			context.m_doc.Redraw();
 		}/*CHIUSURA IF(BREPRESULT)*/
-		/**********************************************************************************************************************/
+	}/*CHIUSURA IF(FINDINGSURF && FINDINGCURV)*/
 
+	  /************************************************/
+	  /*TRIMMING SURFBOT SURFACE USING PIASTRINO CURVE*/
+	  /************************************************/
+	  if(FindingSurf2 && FindingPias)
+	  {
+		const CRhinoObjRef& split_ref = objects[ IndexSurf2 ];
+		const ON_Brep* split = split_ref.Brep();
+		if( !split )
+		{
+			RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(1)!\n" );
+			return failure;
+		}
 
-	 // 	if( !RhinoBrepSplit(*split, *cutter, context.m_doc.AbsoluteTolerance(), pieces) )
-		//{
-		//	RhinoApp().Print( L"UNABLE TO SPLIT BREP.\n" );
-		//}
-		//else
-		//{
-		//	for(int i = 0; i < pieces.Count(); i++ )
-		//	{
-		//		ON_MassProperties* mp = &MassProp.AppendNew();	
-		//		const ON_Brep* brep = ON_Brep::Cast(pieces[i]);
-		//		if( brep )
-		//		{
-		//			brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
-		//			maxPoint[i] = MassProp.At(i)->Centroid();
-		//			MassProp.At(i)->m_mass_type = 2;
-		//			maxArea[i]  = MassProp.At(i)->Area();
-		//		}
-		//	}
-		//	/**************************************/
-		//	/*FINDING THE MAX VALUE OF OBJECT AREA*/
-		//	/**************************************/
-		//	int k = 1;
-		//	if( maxArea[0] > maxArea[1] )
-		//	{
-		//		k = 0;
-		//	}
-		//	int count = pieces.Count();
-		//	if( (count == 0) | (count == 1) )
-		//	{
-		//		if( count == 1 )
-		//		{
-		//			delete pieces[0];
-		//		}
-		//		RhinoApp().Print( L"IT HAS HAPPENED SOMETHING(3)!\n" );
-		//	}
-		//	CRhinoObjectAttributes attrib = objects[IndexSurf]->Attributes();
-		//	attrib.m_uuid = ON_nil_uuid;
-		//	const CRhinoObjectVisualAnalysisMode* vam_list = objects[IndexSurf]->m_analysis_mode_list;
-		//	CRhinoBrepObject* brep_object = new CRhinoBrepObject( attrib );
-		//	if( brep_object )
-		//	{
-		//		brep_object->SetBrep( pieces[k] );
-		//		//CRhinoObjectAttributes atts( brep_object->Attributes() );
-		//		//atts.m_layer_index = Cyl_layer_index[1];
-		//		//CRhinoObjRef ref(brep_object);
-		//		//context.m_doc.ModifyObjectAttributes(ref, atts);
+		const ON_Curve* cut2 = ON_Curve::Cast(objects3[IndexPias]->Geometry()); //goo.Object(0).Curve();
+		if( !cut2 )
+		{
+			return failure;
+		}
 
-		//		/*************************/
-		//		/*DUPLICATING BREP OBJECT*/
-		//		/*************************/
-		//		//CRhinoBrepObject* brep_objectDup =  brep_object->Duplicate();
-		//		//if( brep_objectDup )
-		//		//{
-		//		//  if( context.m_doc.AddObject(brep_objectDup) )
-		//		//  {
-		//		//	CRhinoObjectAttributes atts1( brep_objectDup->Attributes() );
-		//		//	atts1.m_layer_index = Cyl_layer_index[2];
-		//		//	CRhinoObjRef ref1(brep_objectDup);
-		//		//	context.m_doc.ModifyObjectAttributes(ref1, atts1);
-		//		//	context.m_doc.Redraw();
-		//		//  }
-		//		//  else
-		//		//  {
-		//		//	delete brep_objectDup;
-		//		//  }
-		//		//}
+		ON_SimpleArray<const ON_Curve*> EdgeCurves;
+		EdgeCurves.Append(cut2);
 
-		//		if( context.m_doc.AddObject(brep_object))
-		//		{
-		//			RhinoCopyAnalysisModes( vam_list, brep_object );
-		//		}
-		//		else
-		//		{
-		//			delete brep_object;
-		//		}
-		//	}
-		//	context.m_doc.DeleteObject( split_ref ); 
-		//	context.m_doc.Redraw();
-		//}/*CHIUSURA ELSE !RHINOBREPSPLIT(*SPLIT, *CUTTER, CONTEXT.M_DOC.ABSOLUTETOLERANCE(), PIECES)*/
+		ON_Brep* BrepResult = RhinoSplitBrepFace(*split, 0, EdgeCurves, context.m_doc.AbsoluteTolerance());
+		int num = BrepResult->m_F.Count();
+		if(BrepResult)
+		{
+			ON_3dPoint maxPoint[2];
+			double     maxArea[2];
+			for(int i = 0; i < num; i++)
+			{
+				ON_Brep* face = BrepResult->DuplicateFace(i, false);
+				if( face )
+				{
+					ON_MassProperties* mp = &MassProp.AppendNew();
+					face->VolumeMassProperties( *mp, true, true, false, false, base_point );
+					maxPoint[i] = MassProp.At(i)->Centroid();
+					MassProp.At(i)->m_mass_type = 2;
+					maxArea[i]  = MassProp.At(i)->Area();
+				}
+			}
+			if(maxArea[0] > maxArea[1])
+			{
+				first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+				ON_Brep* face = BrepResult->DuplicateFace(0, false);
+				if(context.m_doc.AddBrepObject(*face))
+				{
+					context.m_doc.Redraw();
+					next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+					if( first_sn == next_sn )
+					{
+						return CRhinoCommand::nothing;
+					}
+					else
+					{
+						SetNametoObject(context.m_doc,first_sn, L"SURFBOT",true);	
+					}
+				}
+			}
+			else
+			{
+				ON_Brep* face = BrepResult->DuplicateFace(1, false);
+				context.m_doc.AddBrepObject(*face);
+				context.m_doc.Redraw();
+			}
+			context.m_doc.DeleteObject(split_ref);
+			context.m_doc.Redraw();
+		}/*CHIUSURA IF(BREPRESULT)*/
+	}/*CHIUSURA IF(FINDINGSURF && FINDINGCURV)*/
+
+    /******************************************/
+	/*DUPLICATING SURFTOP AND SURFBOT SURFACES*/
+	/******************************************/
+	objects.Empty();
+	context.m_doc.m_layer_table.SetCurrentLayerIndex(layer_indexMATRICE);	  
+	object_count = context.m_doc.LookupObject( context.m_doc.m_layer_table[layer_indexMATRICE], objects );
+
+	/*******************************************/
+	/*FINDING "SURFTOP" AND "SURFBOT" SURFACES */
+	/*******************************************/
+	for(int i = 0; i < object_count; i++)
+	{
+	  object = objects[ i ];
+	  surface_obj = CRhinoSurfaceObject::Cast(object);
+	  if(!object->Attributes().m_name.Compare("SURFTOP"))
+	  {
+		IndexSurf = i;
+		FindingSurf = true;
 	  }
+	  if(!object->Attributes().m_name.Compare("SURFBOT"))
+	  {
+		IndexSurf2 = i;
+		FindingSurf2 = true;
+	  }
+	}
 
+	/*************************/
+	/*DUPLICATING BREP OBJECT*/
+	/*************************/
+    int layer_indexFONDELLO  = context.m_doc.m_layer_table.FindLayer(L"FONDELLO");
+
+	CRhinoBrepObject* brep_objectDup =  CRhinoBrepObject::Cast(objects[IndexSurf]);
+	if( brep_objectDup )
+	{
+	  if( context.m_doc.AddBrepObject(*brep_objectDup->Brep()) )
+	  {
+		CRhinoObjectAttributes atts1( brep_objectDup->Attributes() );
+		atts1.m_layer_index = layer_indexFISSO;
+		CRhinoObjRef ref1(brep_objectDup);
+		context.m_doc.ModifyObjectAttributes(ref1, atts1);
+		context.m_doc.Redraw();
+	  }
+	}	
+
+	return CRhinoCommand::success;
+}
+
+//
+// END TrimCylinder command
+//
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 
 	  /*************************/
@@ -2676,12 +2740,3 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 			//}
 		 // }
 	  //}
-
-	return CRhinoCommand::success;
-}
-
-//
-// END TrimCylinder command
-//
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
