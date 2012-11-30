@@ -310,7 +310,11 @@ void DialogPrincipale::OnBnClickedButton2()
 	GetDlgItem(IDC_BUTTON3)->EnableWindow(TRUE);
 	GetDlgItem(IDC_BUTTON14)->EnableWindow(TRUE);
 	UpdateData(true);
+	RhinoApp().RunScript( L"! _GenPianoVis", 0 );
 	RhinoApp().RunScript( L"! _GenCylinder", 0 );
+	UpdateData(true);
+	RhinoApp().RunScript( L"! _GenUgello", 0 );
+
 }
 
 void DialogPrincipale::OnCbnSelchangeCmbaltezzafondello()

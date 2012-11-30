@@ -288,6 +288,25 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		}
 	}
 
+	// aggiunta parte per cancellare lineaPV perche' anche se creo l'ugello non si cancella
+	 //CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+	 // const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
+			ON_SimpleArray<const ON_Curve*> lines;
+			ON_SimpleArray<CRhinoObject*> objectsLine;
+			
+			int LinesCount = context.m_doc.LookupObject( layer, objectsLine);
+
+			for(int i = 0; i < LinesCount; i++ )
+			{
+				if(!objectsLine[i]->Attributes().m_name.Compare("PVLine"))
+						{
+						context.m_doc.DeleteObject(objectsLine[i]);
+						}
+			}
+			context.m_doc.Redraw();
+
+	// fine aggiunta
+
 	CRhinoGetObject gc;
 	gc.SetCommandPrompt( L"SELECT LINE TO EXTEND" );
 	gc.SetGeometryFilter( CRhinoGetObject::curve_object );
