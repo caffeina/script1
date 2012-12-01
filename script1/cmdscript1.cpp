@@ -278,7 +278,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		curve_obj = CRhinoCurveObject::Cast( object );
 		if( curve_obj && !object->Attributes().m_name.Compare("PVLine"))
 		{
-			context.m_doc.DeleteObject(objects[ deletingObj ]);  //CANCELLARE LA LINEA DEL PIANO VISIONALE MODIFICATA.
+			context.m_doc.DeleteObject(object);  //CANCELLARE LA LINEA DEL PIANO VISIONALE MODIFICATA.
 			ON_LineCurve curva;
 			curva.SetStartPoint(CurvaPV.PointAtStart());
 			curva.SetEndPoint(CurvaPV.PointAtEnd());
