@@ -1393,37 +1393,15 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 
 	// begin zoom all
 
-	/*if( 0 == view )
-    return;*/
- //
- // //const ON_Viewport& current_vp = view->ActiveViewport().VP();
- //// ON_Viewport zoomed_vp;
- // //zoomed_vp.ZoomToScreenRect(0,0,0,0);
- //// zoomed_vp.
-	// // ON::
+ 
 	CRhinoView* view = RhinoApp().ActiveView();
-	 ON_3dPointArray m_P;
-	 ON_3dPoint a1(-40,-40,-40);
-	 ON_3dPoint a2(40,40,40);
-	 m_P.Append(a1);
-	 m_P.Append(a2);
+	ON_3dPointArray m_P;
+	ON_3dPoint a1(-40,-40,-40);
+	ON_3dPoint a2(40,40,40);
+	m_P.Append(a1);
+	m_P.Append(a2);
 	ZoomExtents(view,m_P);
 
-
- // if( 0 == view )
- //   return CRhinoCommand::failure;
- //
- // CRhinoViewport& vp = view->ActiveViewport();
- //
-  ////const CDisplayPipelineAttributes* pStdAttrs = CRhinoDisplayAttrsMgr::  //StdGhostedAttrs()
-  //if( true )
-  //{
-	 // vp.SetDisplayMode(ON::display_mode);  //( pStdAttrs->Id() );
-  //  view->Redraw();
-  //}
-		/*RhinoApp().RunScript( L"! _Zoom", 0 );
-		RhinoApp().RunScript( L"! _All", 0 );
-		RhinoApp().RunScript( L"! _Extents", 0 );*/
 	// end zoom all
 
 
