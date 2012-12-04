@@ -2,6 +2,8 @@
 #include "Resource.h"		// main symbols
 #include "afxwin.h"
 
+
+
 // finestra di dialogo DialogPrincipale
 
 class DialogPrincipale : public CRhinoDialog  //sostituito CDialog, preferisco il dialog della sdk, nello
@@ -37,6 +39,7 @@ protected:
 	CRhinoScript m_RhinoScript;
 
 public:
+	
 	
 	// valore disassamento. inseriti il valore massimo e minimo.
 	int VAR_Valore_Disassamento;
@@ -119,4 +122,10 @@ public:
 	CString FilletDx;
 public:
 	CString FilletSx;
+public:
+	afx_msg void OnBnClickedButton4();
+public:
+	CString LayerPV;
+public:
+	afx_msg void OnEnChangeEdit1();
 };

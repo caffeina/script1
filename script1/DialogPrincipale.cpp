@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "DialogPrincipale.h"
 #include "Resource.h"
+#include "script1PlugIn.h"
 //#include "DialogPV.h"
 
 
@@ -30,6 +31,7 @@ DialogPrincipale::DialogPrincipale(CWnd* pParent)
 	, AngoloBetaSx(_T("40"))
 	, FilletDx(_T("6"))
 	, FilletSx(_T("13"))
+	, LayerPV(_T("pv"))
 {
 }
 
@@ -65,6 +67,7 @@ void DialogPrincipale::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT9, AngoloBetaSx);
 	DDX_Text(pDX, IDC_EDIT10, FilletDx);
 	DDX_Text(pDX, IDC_EDIT11, FilletSx);
+	DDX_Text(pDX, IDC_EDIT1, LayerPV);
 }
 
 
@@ -97,6 +100,8 @@ BEGIN_MESSAGE_MAP(DialogPrincipale, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON7, &DialogPrincipale::OnBnClickedButton7)
 	ON_BN_CLICKED(IDC_BUTTON14, &DialogPrincipale::OnBnClickedButton14)
 	
+	ON_BN_CLICKED(IDC_BUTTON4, &DialogPrincipale::OnBnClickedButton4)
+	ON_EN_CHANGE(IDC_EDIT1, &DialogPrincipale::OnEnChangeEdit1)
 END_MESSAGE_MAP()
 
 
@@ -395,4 +400,22 @@ void DialogPrincipale::OnBnClickedButton7()
 void DialogPrincipale::OnBnClickedButton14()
 {
 	RhinoApp().RunScript( L"! _Undo", 0 );
+}
+
+void DialogPrincipale::OnBnClickedButton4()
+{
+	
+	//RhinoApp().RunScript( L"! _catturaPV", 0 );
+	
+
+}
+
+void DialogPrincipale::OnEnChangeEdit1()
+{
+	// TODO:  Se si tratta di un controllo RICHEDIT, il controllo non
+	// invierà questa notifica a meno che non si esegua l'override della funzione CRhinoDialog::OnInitDialog()
+	// e venga eseguita la chiamata a CRichEditCtrl().SetEventMask()
+	// con il flag ENM_CHANGE introdotto dall'operatore OR nella maschera.
+
+	// TODO:  Aggiungere qui il codice per la gestione della notifica del controllo.
 }

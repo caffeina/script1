@@ -59,11 +59,13 @@ public:
   ON_wString m_plugin_version;
   DialogPrincipale* m_dialog;
   //DialogPV* m2_dialog;
-
+  
   // TODO: Add additional class information here
 };
 
 Cscript1PlugIn& script1PlugIn();
+
+
 
 
 

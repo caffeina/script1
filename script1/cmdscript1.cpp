@@ -11,7 +11,7 @@
 #include "TestUserData.h"
 #include <math.h>
 
-
+ON_wString LAYER_NAME_PV;
 ON_UUID pvcurva;
 ON_3dPoint AltezzaTacco;
 static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID  uuid, bool bRedraw )
@@ -580,19 +580,19 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	/********************/
 	/*GET THE LAYER NAME*/
 	/********************/
-	CRhinoGetString gs;
-	gs.SetCommandPrompt( L"NAME OF LAYER THAT CONTAINS VISIONAL PLANE " );
-	gs.SetCommandPromptDefault(L"pv");
-	gs.SetDefaultString(L"pv");
-	gs.GetString();
-	if( gs.CommandResult() != CRhinoCommand::success )
+	//CRhinoGetString gs;
+	//gs.SetCommandPrompt( L"NAME OF LAYER THAT CONTAINS VISIONAL PLANE " );
+	//gs.SetCommandPromptDefault(L"pv");
+	//gs.SetDefaultString(L"pv");
+	//gs.GetString();
+	/*if( gs.CommandResult() != CRhinoCommand::success )
 	{
 		return gs.CommandResult();
-	}
+	}*/
 	/*********************/
 	/*VALIDATE THE STRING*/
 	/*********************/
-	ON_wString layer_name = gs.String();
+	ON_wString layer_name = plugin.m_dialog->LayerPV; //gs.String()
 	layer_name.TrimLeftAndRight();
 	if( layer_name.IsEmpty() )
 	{
@@ -615,7 +615,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	}
 	else
 	{
-		layer_PVLine = gs.String();
+		layer_PVLine = layer_name; //gs.String();
 		ON_Layer currentLayer;
 		int numLayers = layer_table.LayerCount();
 		layer_table.SetCurrentLayerIndex(layer_index);
@@ -3054,3 +3054,80 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 			//}
 		 // }
 	  //}
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//
+// BEGIN catturaPV command
+//
+
+class CCommandcatturaPV : public CRhinoCommand
+{
+public:
+	CCommandcatturaPV() {}
+	~CCommandcatturaPV() {}
+	UUID CommandUUID()
+	{
+		// {3F6ABBAC-DBCB-4E73-B40F-99A6144C4E81}
+		static const GUID catturaPVCommand_UUID =
+		{ 0x3F6ABBAC, 0xDBCB, 0x4E73, { 0xB4, 0x0F, 0x99, 0xA6, 0x14, 0x4C, 0x4E, 0x81 } };
+		return catturaPVCommand_UUID;
+	}
+	const wchar_t* EnglishCommandName() { return L"catturaPV"; }
+	const wchar_t* LocalCommandName() { return L"catturaPV"; }
+	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
+};
+
+// The one and only CCommandcatturaPV object
+static class CCommandcatturaPV thecatturaPVCommand;
+
+CRhinoCommand::result CCommandcatturaPV::RunCommand( const CRhinoCommandContext& context )
+{
+	/*ON_wString wStr;
+	wStr.Format( L"The \"%s\" command is under construction.\n", EnglishCommandName() );
+	if( context.IsInteractive() )
+		RhinoMessageBox( wStr, EnglishCommandName(), MB_OK );
+	else
+		RhinoApp().Print( wStr );
+	*/
+	/*static ON_LineCurve CurvaPV;
+	static bool ExistPVLine = false;*/
+	static ON_wString layer_PVLine = L"NONE";
+
+  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+  const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
+  if( layer_PVLine.Compare("NONE") )/*SE LAYER_NAME NON È "NONE", NON È LA PRIMA VOLTA CHE VIENE ATTIVATA QUESTA FUNZIONE*/
+  {
+	/****************/
+	/*FIND THE LAYER*/ 
+	/****************/
+	const CRhinoCurveObject* curve_obj;
+	int current_layer_index = layer.LayerIndex();
+	int PVLayer_Index = layer_table.FindLayer( layer_PVLine ); //INDICE DEL LAYER CONTENENTE IL PIANO VISIONALE.
+	ON_SimpleArray<CRhinoObject*> objects;
+	
+	ON_Layer currentLayer;
+	int numLayers = layer_table.LayerCount();
+	layer_table.SetCurrentLayerIndex(PVLayer_Index);
+	for(int i = 0; i < numLayers; i++)
+	{
+	  if(i != PVLayer_Index)
+	  {
+		  currentLayer = layer_table[i];
+		  currentLayer.SetVisible(false);
+		  layer_table.ModifyLayer(currentLayer, i);
+	  }
+
+	}
+	context.m_doc.Redraw();
+  }
+
+	return CRhinoCommand::success;
+
+}
+
+//
+// END catturaPV command
+//
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
