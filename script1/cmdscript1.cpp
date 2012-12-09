@@ -1391,6 +1391,30 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 	}
 	/**********************************************************************/
 
+			// inizio spinette che fermano la spina
+				//
+	  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+//	  const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
+	  int SPINALayer_Index = layer_table.FindLayer( L"Layer 01" );
+	  const CRhinoLayer& SPINALayer = layer_table[SPINALayer_Index];
+			ON_SimpleArray<const ON_Curve*> lines;
+			ON_SimpleArray<CRhinoObject*> objectsLine;
+			
+			int LinesCount = context.m_doc.LookupObject( SPINALayer, objectsLine);
+			
+			CRhinoObject* spina = objectsLine[1];
+			for(int i = 0; i < LinesCount; i++ )
+			{
+				/*if(!objectsLine[i]->Attributes().m_name.Compare("ugello"))
+						{*/
+						context.m_doc.ShowObject(objectsLine[i]);
+						//}
+						context.m_doc.Redraw();
+			}
+			
+			// end  spinette che fermano la spina
+
+
 	// begin zoom all
 
  
