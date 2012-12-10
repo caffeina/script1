@@ -3602,3 +3602,308 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 //
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//
+// BEGIN GenSpineCentraggio command
+//
+
+class CCommandGenSpineCentraggio : public CRhinoCommand
+{
+public:
+	CCommandGenSpineCentraggio() {}
+	~CCommandGenSpineCentraggio() {}
+	UUID CommandUUID()
+	{
+		// {F6367DFC-93D4-45E5-9CCC-764D02BE0F16}
+		static const GUID GenSpineCentraggioCommand_UUID =
+		{ 0xF6367DFC, 0x93D4, 0x45E5, { 0x9C, 0xCC, 0x76, 0x4D, 0x02, 0xBE, 0x0F, 0x16 } };
+		return GenSpineCentraggioCommand_UUID;
+	}
+	const wchar_t* EnglishCommandName() { return L"GenSpineCentraggio"; }
+	const wchar_t* LocalCommandName() { return L"GenSpineCentraggio"; }
+	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
+};
+
+// The one and only CCommandGenSpineCentraggio object
+static class CCommandGenSpineCentraggio theGenSpineCentraggioCommand;
+
+CRhinoCommand::result CCommandGenSpineCentraggio::RunCommand( const CRhinoCommandContext& context )
+{
+	Cscript1PlugIn& plugin = script1PlugIn();
+	if( !plugin.IsDlgVisible() )
+	{
+		return CRhinoCommand::nothing;
+	}
+
+	const CRhinoCurveObject* curve_obj;
+	bool FindingSpineLinea1 = false;
+	bool FindingSpineLinea2 = false;
+	bool FindingSpineLinea3 = false;
+	bool FindingSpineLinea4 = false;
+	int IndexSpineLinea[4];
+	int IndexSilLineSX = 0;
+	int IndexSilLineDX = 0;
+	ON_SimpleArray<CRhinoObject*> objectsPV;
+	ON_SimpleArray<CRhinoObject*> objectsSIL;
+	int object_countPV;
+	int object_countSIL;
+
+	int layer_indexPV  = context.m_doc.m_layer_table.FindLayer(L"PV");
+	int layer_indexSIL = context.m_doc.m_layer_table.FindLayer(L"SIL");
+	if(layer_indexPV > 0)
+	{
+	  objectsPV.Empty();
+	  object_countPV = context.m_doc.LookupObject( context.m_doc.m_layer_table[layer_indexPV], objectsPV );
+	}
+	if(layer_indexSIL > 0)
+	{
+	  objectsSIL.Empty();
+	  object_countSIL = context.m_doc.LookupObject( context.m_doc.m_layer_table[layer_indexSIL], objectsSIL );
+	}
+	/****************************/
+	/*FINDING "SPINALINEA" LINES*/
+	/****************************/
+	if(object_countSIL == 2)
+	{
+		CRhinoCurveObject* ObjSilCurve = CRhinoCurveObject::Cast(objectsSIL[0]);
+		ON_3dPoint middlePt = ON_3dPoint((ObjSilCurve->Curve()->PointAtStart().x + ObjSilCurve->Curve()->PointAtEnd().x)/2.0, 
+									(ObjSilCurve->Curve()->PointAtStart().y + ObjSilCurve->Curve()->PointAtEnd().y)/2.0,
+									(ObjSilCurve->Curve()->PointAtStart().z + ObjSilCurve->Curve()->PointAtEnd().z)/2.0);
+
+		if(middlePt.x < 0.0)
+		{
+			IndexSilLineSX = 0;
+			IndexSilLineDX = 1;
+		}
+		else
+		{
+			IndexSilLineSX = 1;
+			IndexSilLineDX = 0;
+		}
+	}
+	else
+	{
+		CRhinoCommand::nothing;		
+	}
+
+	/****************************/
+	/*FINDING "SPINALINEA" LINES*/
+	/****************************/
+	for(int i = 0; i < object_countPV; i++)
+	{
+	  if(!objectsPV[i]->Attributes().m_name.Compare("SPINALINEA1"))
+	  {
+		IndexSpineLinea[0] = i;
+		FindingSpineLinea1 = true;
+	  }
+	  if(!objectsPV[i]->Attributes().m_name.Compare("SPINALINEA2"))
+	  {
+		IndexSpineLinea[1] = i;
+		FindingSpineLinea2 = true;
+	  }
+	  if(!objectsPV[i]->Attributes().m_name.Compare("SPINALINEA3"))
+	  {
+		IndexSpineLinea[2] = i;
+		FindingSpineLinea3 = true;
+	  }
+	  if(!objectsPV[i]->Attributes().m_name.Compare("SPINALINEA4"))
+	  {
+		IndexSpineLinea[3] = i;
+		FindingSpineLinea4 = true;
+	  }
+	}
+
+	if(FindingSpineLinea2 && FindingSpineLinea4)
+	{
+		CRhinoCurveObject* ObjCurve1 = CRhinoCurveObject::Cast(objectsPV[IndexSpineLinea[1]]);/*SPINALINEA2*/
+		CRhinoCurveObject* ObjCurve2 = CRhinoCurveObject::Cast(objectsPV[IndexSpineLinea[3]]);/*SPINALINEA4*/
+		if(ObjCurve1 && ObjCurve2)
+		{
+			ON_3dPoint MiddleTopPtSX;
+			ON_3dPoint MiddleBotPtSX;
+			/**************************/
+			/*SPINALINEA2 MIDDLE POINT*/
+			/**************************/
+			ON_3dPoint pt2 = ON_3dPoint((ObjCurve1->Curve()->PointAtStart().x + ObjCurve1->Curve()->PointAtEnd().x)/2.0, 
+				                        (ObjCurve1->Curve()->PointAtStart().y + ObjCurve1->Curve()->PointAtEnd().y)/2.0,
+										(ObjCurve1->Curve()->PointAtStart().z + ObjCurve1->Curve()->PointAtEnd().z)/2.0);
+			/**************************/
+			/*SPINALINEA4 MIDDLE POINT*/
+			/**************************/
+			ON_3dPoint pt4 = ON_3dPoint((ObjCurve2->Curve()->PointAtStart().x + ObjCurve2->Curve()->PointAtEnd().x)/2.0, 
+				                        (ObjCurve2->Curve()->PointAtStart().y + ObjCurve2->Curve()->PointAtEnd().y)/2.0, 
+										(ObjCurve2->Curve()->PointAtStart().z + ObjCurve2->Curve()->PointAtEnd().z)/2.0);
+
+			CRhinoCurveObject* ObjSilCurve = CRhinoCurveObject::Cast(objectsSIL[IndexSilLineSX]);
+			ON_3dPoint TopPt = ObjSilCurve->Curve()->PointAtEnd();
+			ON_3dPoint BotPt = ObjSilCurve->Curve()->PointAtStart();
+			if(TopPt.z > BotPt.z)
+			{
+				MiddleTopPtSX = ON_3dPoint((TopPt.x + pt4.x)/2.0,
+					                       (TopPt.y + pt4.y)/2.0,
+										   (TopPt.z + pt4.z)/2.0);
+
+				MiddleBotPtSX = ON_3dPoint((BotPt.x + pt2.x)/2.0,
+					                       (BotPt.y + pt2.y)/2.0,
+										   (BotPt.z + pt2.z)/2.0);
+
+				/***********************************************************/
+				//ON_LineCurve* line = new ON_LineCurve();
+				//line->SetStartPoint(MiddleTopPtSX);
+				//line->SetEndPoint(MiddleBotPtSX);
+				//if(context.m_doc.AddCurveObject(*line))
+				//{
+				//	context.m_doc.Redraw();
+				//}
+				/***********************************************************/
+			}
+			else
+			{
+				MiddleTopPtSX = ON_3dPoint((TopPt.x + pt2.x)/2.0,
+				                           (TopPt.y + pt2.y)/2.0,
+				    					   (TopPt.z + pt2.z)/2.0);
+
+				MiddleBotPtSX = ON_3dPoint((BotPt.x + pt4.x)/2.0,
+				                           (BotPt.y + pt4.y)/2.0,
+										   (BotPt.z + pt4.z)/2.0);
+				/***********************************************************/
+				//ON_LineCurve* line = new ON_LineCurve();
+				//line->SetStartPoint(MiddleTopPtSX);
+				//line->SetEndPoint(MiddleBotPtSX);
+				//if(context.m_doc.AddCurveObject(*line))
+				//{
+				//	context.m_doc.Redraw();
+				//}
+				/***********************************************************/
+			}
+			/*********************/
+			/*FINDING START POINT*/
+			/*********************/
+			ON_3dPoint StartPt = (MiddleTopPtSX.z > MiddleBotPtSX.z ? MiddleTopPtSX : MiddleBotPtSX);
+			ON_3dPoint EndPt   = (MiddleTopPtSX.z < MiddleBotPtSX.z ? MiddleTopPtSX : MiddleBotPtSX);
+			double length = sqrt((MiddleTopPtSX.x - MiddleBotPtSX.x)*(MiddleTopPtSX.x - MiddleBotPtSX.x) + 
+								 (MiddleTopPtSX.y - MiddleBotPtSX.y)*(MiddleTopPtSX.y - MiddleBotPtSX.y) + 
+				                 (MiddleTopPtSX.z - MiddleBotPtSX.z)*(MiddleTopPtSX.z - MiddleBotPtSX.z));
+
+			/*****************************/
+			/*COMPUTING DIRECTION COSINES*/
+			/*****************************/
+			double CosX = (EndPt.z - StartPt.z)/length;
+			double SinX = (EndPt.x - StartPt.x)/length;
+
+			ON_Plane plane = ON_Plane(ON_3dPoint(StartPt.x, 0.0, StartPt.z), ON_3dVector(0.0, 1.0, 0.0));
+			ON_Circle Circle1(plane, ON_3dPoint((StartPt.x + SinX*length/4.0), 0.0, (StartPt.z + CosX*length/4.0)), 6.0);
+			ON_Circle Circle2(plane, ON_3dPoint((StartPt.x + 3.0*SinX*length/4.0), 0.0, (StartPt.z + 3.0*CosX*length/4.0)), 8.0);
+			if(context.m_doc.AddCurveObject(Circle1) && context.m_doc.AddCurveObject(Circle2))
+			{
+				context.m_doc.Redraw();
+			}			
+		}/*CHIUSURA IF OBJCURVE1 && OBJCURVE2*/		
+	}/*CHIUSURA IF FINDINGSPINELINEA2 && FINDINGSPINELINEA4*/
+	if(FindingSpineLinea1 && FindingSpineLinea3)
+	{
+		CRhinoCurveObject* ObjCurve1 = CRhinoCurveObject::Cast(objectsPV[IndexSpineLinea[0]]);/*SPINALINEA1*/
+		CRhinoCurveObject* ObjCurve2 = CRhinoCurveObject::Cast(objectsPV[IndexSpineLinea[2]]);/*SPINALINEA3*/
+		if(ObjCurve1 && ObjCurve2)
+		{
+			ON_3dPoint MiddleTopPtSX;
+			ON_3dPoint MiddleBotPtSX;
+			/**************************/
+			/*SPINALINEA1 MIDDLE POINT*/
+			/**************************/
+			ON_3dPoint pt1 = ON_3dPoint((ObjCurve1->Curve()->PointAtStart().x + ObjCurve1->Curve()->PointAtEnd().x)/2.0, 
+				                        (ObjCurve1->Curve()->PointAtStart().y + ObjCurve1->Curve()->PointAtEnd().y)/2.0,
+										(ObjCurve1->Curve()->PointAtStart().z + ObjCurve1->Curve()->PointAtEnd().z)/2.0);
+			/**************************/
+			/*SPINALINEA3 MIDDLE POINT*/
+			/**************************/
+			ON_3dPoint pt3 = ON_3dPoint((ObjCurve2->Curve()->PointAtStart().x + ObjCurve2->Curve()->PointAtEnd().x)/2.0, 
+				                        (ObjCurve2->Curve()->PointAtStart().y + ObjCurve2->Curve()->PointAtEnd().y)/2.0, 
+										(ObjCurve2->Curve()->PointAtStart().z + ObjCurve2->Curve()->PointAtEnd().z)/2.0);
+
+			CRhinoCurveObject* ObjSilCurve = CRhinoCurveObject::Cast(objectsSIL[IndexSilLineDX]);
+			ON_3dPoint TopPt = ObjSilCurve->Curve()->PointAtEnd();
+			ON_3dPoint BotPt = ObjSilCurve->Curve()->PointAtStart();
+			if(TopPt.z > BotPt.z)
+			{
+				MiddleTopPtSX = ON_3dPoint((TopPt.x + pt3.x)/2.0,
+				                           (TopPt.y + pt3.y)/2.0,
+										   (TopPt.z + pt3.z)/2.0);
+
+				MiddleBotPtSX = ON_3dPoint((BotPt.x + pt1.x)/2.0,
+					                       (BotPt.y + pt1.y)/2.0,
+										   (BotPt.z + pt1.z)/2.0);
+
+				/***************/
+				/*DA CANCELLARE*/
+				/***************/
+				//ON_LineCurve* line = new ON_LineCurve();
+				//line->SetStartPoint(MiddleTopPtSX);
+				//line->SetEndPoint(MiddleBotPtSX);
+				//if(context.m_doc.AddCurveObject(*line))
+				//{
+				//	context.m_doc.Redraw();
+				//}
+				/***************/
+				/*DA CANCELLARE*/
+				/***************/
+			}
+			else
+			{
+				MiddleTopPtSX = ON_3dPoint((TopPt.x + pt1.x)/2.0,
+				                           (TopPt.y + pt1.y)/2.0,
+										   (TopPt.z + pt1.z)/2.0);
+
+				MiddleBotPtSX = ON_3dPoint((BotPt.x + pt3.x)/2.0,
+				                           (BotPt.y + pt3.y)/2.0,
+									       (BotPt.z + pt3.z)/2.0);
+				/***************/
+				/*DA CANCELLARE*/
+				/***************/
+				//ON_LineCurve* line = new ON_LineCurve();
+				//line->SetStartPoint(MiddleTopPtSX);
+				//line->SetEndPoint(MiddleBotPtSX);
+				//if(context.m_doc.AddCurveObject(*line))
+				//{
+				//	context.m_doc.Redraw();
+				//}
+				/***************/
+				/*DA CANCELLARE*/
+				/***************/
+			}
+			/*********************/
+			/*FINDING START POINT*/
+			/*********************/
+			ON_3dPoint StartPt = (MiddleTopPtSX.z > MiddleBotPtSX.z ? MiddleTopPtSX : MiddleBotPtSX);
+			ON_3dPoint EndPt   = (MiddleTopPtSX.z < MiddleBotPtSX.z ? MiddleTopPtSX : MiddleBotPtSX);
+			double length = sqrt((MiddleTopPtSX.x - MiddleBotPtSX.x)*(MiddleTopPtSX.x - MiddleBotPtSX.x) + 
+								 (MiddleTopPtSX.y - MiddleBotPtSX.y)*(MiddleTopPtSX.y - MiddleBotPtSX.y) + 
+				                 (MiddleTopPtSX.z - MiddleBotPtSX.z)*(MiddleTopPtSX.z - MiddleBotPtSX.z));
+
+			/*****************************/
+			/*COMPUTING DIRECTION COSINES*/
+			/*****************************/
+			double CosX = (EndPt.z - StartPt.z)/length;
+			double SinX = (EndPt.x - StartPt.x)/length;
+
+			ON_Plane plane = ON_Plane(ON_3dPoint(StartPt.x, 0.0, StartPt.z), ON_3dVector(0.0, 1.0, 0.0));
+			ON_Circle Circle1(plane, ON_3dPoint((StartPt.x + SinX*length/4.0), 0.0, (StartPt.z + CosX*length/4.0)), 8.0);
+			ON_Circle Circle2(plane, ON_3dPoint((StartPt.x + 3.0*SinX*length/4.0), 0.0, (StartPt.z + 3.0*CosX*length/4.0)), 6.0);
+			if(context.m_doc.AddCurveObject(Circle1) && context.m_doc.AddCurveObject(Circle2))
+			{
+				context.m_doc.Redraw();
+			}			
+		}/*CHIUSURA IF OBJCURVE1 && OBJCURVE2*/		
+	}/*CHIUSURA IF FINDINGSPINELINEA1 && FINDINGSPINELINEA3*/
+
+
+	
+	return CRhinoCommand::success;
+}
+
+//
+// END GenSpineCentraggio command
+//
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
