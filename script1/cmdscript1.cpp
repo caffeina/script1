@@ -1599,15 +1599,96 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			}
 			 ON_BoundingBox bbox;
 			  ON_3dPoint aaa(0,0,90);
-	  for(int i = 0; i < LinesCount; i++ )
+	  /*for(int i = 0; i < LinesCount; i++ )
 	  {
 		geom[i]->GetBoundingBox( bbox, bbox.IsValid() );
 		ON_3dPoint pointtemp = bbox.ClosestPoint(aaa);
 	  ON_3dPoint base_point = bbox.Center();
-	  }
+	  }*/
+			  double valore_ugello =(_wtof(plugin.m_dialog->ValIniezioneDisassamento));
+			  double temp5;
+			  if (valore_ugello==12){temp5 = -2.6;}
+			  else
+			  {temp5 = 2.6;}
+
+			  ON_3dPoint aa1(0,0,95);
+			  ON_3dPoint aa2(temp5,0,97.6);
+			  ON_3dPoint aa3(temp5,0,92.4);
 	
+			 
+			 
+			//CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+			//const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
+			//ON_SimpleArray<const ON_Curve*> lines;
+			//ON_SimpleArray<CRhinoObject*> objectsLine;
+			
+			LinesCount = context.m_doc.LookupObject( layer, objectsLine);
+			ON_SimpleArray<const ON_Curve*> linesPV;
+			ON_SimpleArray<CRhinoObject*> objectsLinePV;
+			
+			int LinesCountPV = context.m_doc.LookupObject( layer, objectsLinePV);
+
+			for(int i = 0; i < LinesCount; i++ )
+			{
+				if (
+					(!objectsLinePV[i]->Attributes().m_name.Compare("SPINAFERMO1")) ||
+					(!objectsLinePV[i]->Attributes().m_name.Compare("SPINAFERMO2")) ||
+					(!objectsLinePV[i]->Attributes().m_name.Compare("SPINAFERMO3"))
+					
+					
+					)
+						{
+						context.m_doc.DeleteObject(objectsLinePV[i]);
+						}
+			}
+			context.m_doc.Redraw();
 	  
 			
+			ON_Circle SpinaFermo1(aa1, 5.6);
+			ON_Circle SpinaFermo2(aa2, 5.6);
+			ON_Circle SpinaFermo3(aa3, 5.6);
+			if (AltezzaTacco.z < 45){
+
+						unsigned int first_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+						CRhinoCurveObject* curve_SpinaFermo1 = context.m_doc.AddCurveObject( SpinaFermo1 );
+						unsigned int next_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+						  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+						  if( first_sn1 == next_sn1 )
+							return CRhinoCommand::nothing;
+						  else
+						  {
+							  ON_wString obj_name = L"SPINAFERMO1";
+							  SetNametoObject(context.m_doc,first_sn1,obj_name,true);			  
+						  }
+			}
+			else
+			{
+				unsigned int first_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+						CRhinoCurveObject* curve_SpinaFermo2 = context.m_doc.AddCurveObject( SpinaFermo2 );
+						unsigned int next_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+						  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+						  if( first_sn1 == next_sn1 )
+							return CRhinoCommand::nothing;
+						  else
+						  {
+							  ON_wString obj_name = L"SPINAFERMO2";
+							  SetNametoObject(context.m_doc,first_sn1,obj_name,true);			  
+						  }
+
+						  unsigned int first_sn2 = CRhinoObject::NextRuntimeObjectSerialNumber();
+						CRhinoCurveObject* curve_SpinaFermo3 = context.m_doc.AddCurveObject( SpinaFermo3 );
+						unsigned int next_sn2 = CRhinoObject::NextRuntimeObjectSerialNumber();
+						  /*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+						  if( first_sn2 == next_sn2 )
+							return CRhinoCommand::nothing;
+						  else
+						  {
+							  ON_wString obj_name = L"SPINAFERMO3";
+							  SetNametoObject(context.m_doc,first_sn2,obj_name,true);			  
+						  }
+
+			}
+			context.m_doc.Redraw();
 			// end  spinette che fermano la spina
 
 
