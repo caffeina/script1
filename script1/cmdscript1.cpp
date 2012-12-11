@@ -740,12 +740,30 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		/************************/
 		for(int i = 0; i < LinesCount; i++ )
 		{
-			if( objectsLine[i]->Attributes().m_name.Compare("CILINDRO") )
+			if		(	
+					(objectsLine[i]->Attributes().m_name.Compare("CILINDRO") ) ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINACIRCLE1")) ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINACIRCLE2")) ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINACIRCLE3"))  ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINACIRCLE4"))  ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINALINEA1"))  ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINALINEA2"))  ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINALINEA3"))  ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINALINEA4")) ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINAFERMO1")) ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINAFERMO2")) ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINAFERMO3")) ||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINACENTRAGGIO1"))||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINACENTRAGGIO2"))||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINACENTRAGGIO3"))||
+					(objectsLine[i]->Attributes().m_name.Compare("SPINACENTRAGGIO4")) ||
+					(objectsLine[i]->Attributes().m_name.Compare("ugello"))
+					)	
+					
 			{
-				if(objectsLine[i]->Attributes().m_name.Compare("ugello"))
-				{
+				
 					context.m_doc.DeleteObject(objectsLine[i]);
-				}
+				
 			}
 		}
 		context.m_doc.Redraw();
@@ -3636,6 +3654,8 @@ CRhinoCommand::result CCommandGenSpineCentraggio::RunCommand( const CRhinoComman
 		return CRhinoCommand::nothing;
 	}
 
+	int first_sn;
+	int next_sn;
 	const CRhinoCurveObject* curve_obj;
 	bool FindingSpineLinea1 = false;
 	bool FindingSpineLinea2 = false;
@@ -3795,10 +3815,41 @@ CRhinoCommand::result CCommandGenSpineCentraggio::RunCommand( const CRhinoComman
 			ON_Plane plane = ON_Plane(ON_3dPoint(StartPt.x, 0.0, StartPt.z), ON_3dVector(0.0, 1.0, 0.0));
 			ON_Circle Circle1(plane, ON_3dPoint((StartPt.x + SinX*length/4.0), 0.0, (StartPt.z + CosX*length/4.0)), 6.0);
 			ON_Circle Circle2(plane, ON_3dPoint((StartPt.x + 3.0*SinX*length/4.0), 0.0, (StartPt.z + 3.0*CosX*length/4.0)), 8.0);
-			if(context.m_doc.AddCurveObject(Circle1) && context.m_doc.AddCurveObject(Circle2))
+
+			first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+			if(context.m_doc.AddCurveObject(Circle1))
 			{
+				next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+				/************************************************/
+				/*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+				/************************************************/
+				if(first_sn == next_sn)
+				{
+					return CRhinoCommand::nothing;
+				}
+				else
+				{
+					SetNametoObject(context.m_doc, first_sn, L"SPINACENTRAGGIO1", true);			  
+				}
 				context.m_doc.Redraw();
-			}			
+			}
+			first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+			if(context.m_doc.AddCurveObject(Circle2))
+			{
+				next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+				/************************************************/
+				/*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+				/************************************************/
+				if(first_sn == next_sn)
+				{
+					return CRhinoCommand::nothing;
+				}
+				else
+				{
+					SetNametoObject(context.m_doc, first_sn, L"SPINACENTRAGGIO2", true);			  
+				}
+				context.m_doc.Redraw();
+			}		
 		}/*CHIUSURA IF OBJCURVE1 && OBJCURVE2*/		
 	}/*CHIUSURA IF FINDINGSPINELINEA2 && FINDINGSPINELINEA4*/
 	if(FindingSpineLinea1 && FindingSpineLinea3)
@@ -3890,10 +3941,40 @@ CRhinoCommand::result CCommandGenSpineCentraggio::RunCommand( const CRhinoComman
 			ON_Plane plane = ON_Plane(ON_3dPoint(StartPt.x, 0.0, StartPt.z), ON_3dVector(0.0, 1.0, 0.0));
 			ON_Circle Circle1(plane, ON_3dPoint((StartPt.x + SinX*length/4.0), 0.0, (StartPt.z + CosX*length/4.0)), 8.0);
 			ON_Circle Circle2(plane, ON_3dPoint((StartPt.x + 3.0*SinX*length/4.0), 0.0, (StartPt.z + 3.0*CosX*length/4.0)), 6.0);
-			if(context.m_doc.AddCurveObject(Circle1) && context.m_doc.AddCurveObject(Circle2))
+			first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+			if(context.m_doc.AddCurveObject(Circle1))
 			{
+				next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+				/************************************************/
+				/*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+				/************************************************/
+				if(first_sn == next_sn)
+				{
+					return CRhinoCommand::nothing;
+				}
+				else
+				{
+					SetNametoObject(context.m_doc, first_sn, L"SPINACENTRAGGIO3", true);			  
+				}
 				context.m_doc.Redraw();
-			}			
+			}
+			first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+			if(context.m_doc.AddCurveObject(Circle2))
+			{
+				next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+				/************************************************/
+				/*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+				/************************************************/
+				if(first_sn == next_sn)
+				{
+					return CRhinoCommand::nothing;
+				}
+				else
+				{
+					SetNametoObject(context.m_doc, first_sn, L"SPINACENTRAGGIO4", true);			  
+				}
+				context.m_doc.Redraw();
+			}	
 		}/*CHIUSURA IF OBJCURVE1 && OBJCURVE2*/		
 	}/*CHIUSURA IF FINDINGSPINELINEA1 && FINDINGSPINELINEA3*/
 
