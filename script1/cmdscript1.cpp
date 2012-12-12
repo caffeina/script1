@@ -1592,7 +1592,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 	}
 	/**********************************************************************/
 
-			// inizio spinette che fermano la spina
+			// inizio spinette che fermano la spina (spinette)
 				//
 	  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
 //	  const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
@@ -1630,8 +1630,8 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			  {temp5 = 2.6;}
 
 			  ON_3dPoint aa1(0,0,95);
-			  ON_3dPoint aa2(temp5,0,97.6);
-			  ON_3dPoint aa3(temp5,0,92.4);
+			  ON_3dPoint aa2(0,temp5,97.6);
+			  ON_3dPoint aa3(0,temp5,92.4);
 	
 			 
 			 
@@ -1662,9 +1662,9 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			context.m_doc.Redraw();
 	  
 			
-			ON_Circle SpinaFermo1(aa1, 5.6);
-			ON_Circle SpinaFermo2(aa2, 5.6);
-			ON_Circle SpinaFermo3(aa3, 5.6);
+			ON_Circle SpinaFermo1(aa1, 1.4); // di diametro 2.8
+			ON_Circle SpinaFermo2(aa2, 1.4); // di diametro 2.8
+			ON_Circle SpinaFermo3(aa3, 1.4); // di diametro 2.8
 			if (AltezzaTacco.z < 45){
 
 						unsigned int first_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
@@ -1723,7 +1723,20 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 
 	// end zoom all
 
+	// begin aniello accendere tutti i layer
+	ON_Layer currentLayer;
+	int numLayers = layer_table.LayerCount();
+	for(int i = 0; i < numLayers; i++)
+	{
+	  
+		  currentLayer = layer_table[i];
+		  currentLayer.SetVisible(true);
+		  layer_table.ModifyLayer(currentLayer, i);
+	  
 
+	}
+	context.m_doc.Redraw();
+	// end aniello accendere tutti i layer
   return CRhinoCommand::success;
 }
 
@@ -3813,8 +3826,8 @@ CRhinoCommand::result CCommandGenSpineCentraggio::RunCommand( const CRhinoComman
 			double SinX = (EndPt.x - StartPt.x)/length;
 
 			ON_Plane plane = ON_Plane(ON_3dPoint(StartPt.x, 0.0, StartPt.z), ON_3dVector(0.0, 1.0, 0.0));
-			ON_Circle Circle1(plane, ON_3dPoint((StartPt.x + SinX*length/4.0), 0.0, (StartPt.z + CosX*length/4.0)), 6.0);
-			ON_Circle Circle2(plane, ON_3dPoint((StartPt.x + 3.0*SinX*length/4.0), 0.0, (StartPt.z + 3.0*CosX*length/4.0)), 8.0);
+			ON_Circle Circle1(plane, ON_3dPoint((StartPt.x + SinX*length/4.0), 0.0, (StartPt.z + CosX*length/4.0)), 3.0); // fix aniello da email: deve essere diamentro 6 mm
+			ON_Circle Circle2(plane, ON_3dPoint((StartPt.x + 3.0*SinX*length/4.0), 0.0, (StartPt.z + 3.0*CosX*length/4.0)), 4.0); // fix aniello da email: deve essere diamentro 8 mm
 
 			first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
 			if(context.m_doc.AddCurveObject(Circle1))
@@ -3939,8 +3952,8 @@ CRhinoCommand::result CCommandGenSpineCentraggio::RunCommand( const CRhinoComman
 			double SinX = (EndPt.x - StartPt.x)/length;
 
 			ON_Plane plane = ON_Plane(ON_3dPoint(StartPt.x, 0.0, StartPt.z), ON_3dVector(0.0, 1.0, 0.0));
-			ON_Circle Circle1(plane, ON_3dPoint((StartPt.x + SinX*length/4.0), 0.0, (StartPt.z + CosX*length/4.0)), 8.0);
-			ON_Circle Circle2(plane, ON_3dPoint((StartPt.x + 3.0*SinX*length/4.0), 0.0, (StartPt.z + 3.0*CosX*length/4.0)), 6.0);
+			ON_Circle Circle1(plane, ON_3dPoint((StartPt.x + SinX*length/4.0), 0.0, (StartPt.z + CosX*length/4.0)), 4.0); // fix aniello da email: deve essere diamentro 8 mm
+			ON_Circle Circle2(plane, ON_3dPoint((StartPt.x + 3.0*SinX*length/4.0), 0.0, (StartPt.z + 3.0*CosX*length/4.0)), 3.0); // fix aniello da email: deve essere diamentro 6 mm
 			first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
 			if(context.m_doc.AddCurveObject(Circle1))
 			{
