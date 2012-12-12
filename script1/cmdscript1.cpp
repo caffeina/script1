@@ -1630,8 +1630,8 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			  {temp5 = 2.6;}
 
 			  ON_3dPoint aa1(0,0,95);
-			  ON_3dPoint aa2(0,temp5,97.6);
-			  ON_3dPoint aa3(0,temp5,92.4);
+			  ON_3dPoint aa2(temp5,2.6,95);
+			  ON_3dPoint aa3(temp5,-2.6,95);
 	
 			 
 			 
