@@ -12,6 +12,9 @@
 #include <math.h>
 
 
+#include "StdAfx.h"
+#include "Resource.h"
+
 
 /*********************************************************/
 ON_LineCurve CurvaPV;
@@ -1564,7 +1567,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 	}
 	/**********************************************************************/
 
-			// inizio spinette che fermano la spina (spinette)
+			// BEGIN  SPINETTE CHE FERMANO LA SPINA (spinette)
 				//
 	  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
 //	  const CRhinoLayer& layer = context.m_doc.m_layer_table.CurrentLayer();
@@ -1684,9 +1687,77 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 
 			}
 			context.m_doc.Redraw();
-			// end  spinette che fermano la spina
+			// END  SPINETTE CHE FERMANO LA SPINA
 
 
+
+			/****************************************************/
+			// BEGIN PRESE DEI ROCCHETTI
+			/* le prese dei rocchetti devono essere presenti soltanto quando non e' il rocchetto chiuso.*/
+			/* i centri del cerchio sono a 80 e 100 dalla base del fondello*/
+			/* se lo stampo e' 140 sara' presente solo quello piu' basso*/
+			/* cerchi di diametro 10*/
+			/* entrambi i cerchi devono capitare nella matrice, controllare questo*/
+			int nIndex1 = plugin.m_dialog->AltezzaFondelloControllo.GetCurSel();
+			CString strCBText1;
+			plugin.m_dialog->AltezzaFondelloControllo.GetLBText( nIndex1, strCBText1);
+			int altfondello = _wtoi(strCBText1); // da interaccia parte da 10
+			double valpresa = 80-altfondello;
+			ON_3dPoint proc1 (0,0,valpresa);
+			ON_3dPoint proc2 (0,0,valpresa+20);
+			int nIndex = plugin.m_dialog->m_comboAltTacco.GetCurSel();
+			CString strCBText;
+			plugin.m_dialog->m_comboAltTacco.GetLBText( nIndex, strCBText);
+			int altezzaTacco = _wtoi(strCBText); // puo essere 140, 160, 180
+			
+			ON_Circle PresaRocchetto1(ON_zx_plane, proc1, 5);
+			ON_Circle PresaRocchetto2(ON_zx_plane, proc2, 5); 
+			
+			//CComboBox *combo= (CComboBox *)GetDlgItem(plugin.m_dialog->m_hWnd, IDC_COMBO2);
+			//CString strCBText;
+			//int nIndex = combo->GetCurSel();
+			//combo->GetLBText( nIndex, strCBText);
+			//CComboBox *combo2= (CComboBox *)GetDlgItem(IDC_CMBAltezzaTacco);
+
+			// (strCBText)==("Rocchetto Normale") da mettere nell'if successivo. sara' gestito in futuro
+			
+			if (true)
+			{
+				unsigned int first_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+				CRhinoCurveObject* curve_SpinaFermo1 = context.m_doc.AddCurveObject( PresaRocchetto1 );
+				unsigned int next_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+				/*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+				if( first_sn1 == next_sn1 )
+				{
+					return CRhinoCommand::nothing;
+				}
+				else
+				{
+					ON_wString obj_name = L"PRESAROCCHETTO1";
+					SetNametoObject(context.m_doc,first_sn1,obj_name,true);			  
+				}
+			}
+			if (altezzaTacco>140)
+			{
+				unsigned int first_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+				CRhinoCurveObject* curve_SpinaFermo1 = context.m_doc.AddCurveObject( PresaRocchetto2 );
+				unsigned int next_sn1 = CRhinoObject::NextRuntimeObjectSerialNumber();
+				/*IF THE TWO ARE THE SAME, THEN NOTHING HAPPENED*/
+				if( first_sn1 == next_sn1 )
+				{
+					return CRhinoCommand::nothing;
+				}
+				else
+				{
+					ON_wString obj_name = L"PRESAROCCHETTO2";
+					SetNametoObject(context.m_doc,first_sn1,obj_name,true);			  
+				}
+			}
+
+
+
+			// END PRESE DEI ROCCHETTI
+			/****************************************************/
 	//// begin zoom all
 
  //
