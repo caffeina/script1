@@ -386,6 +386,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Utilitydaweb.h"
+				>
+			</File>
+			<File
 				RelativePath=".\VariantUtilities.h"
 				>
 			</File>

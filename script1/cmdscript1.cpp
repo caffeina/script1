@@ -26,6 +26,52 @@ ON_wString layer_PVLine = L"NONE";
 ON_wString LAYER_NAME_PV;
 ON_UUID pvcurva;
 ON_3dPoint AltezzaTacco;
+
+/********************UTLITY*************************/
+/*
+Description:
+  Projects a curve onto a surface or polysurface
+Parameters:
+  brep  - [in] The brep to project the curve onto.
+  curve - [in] The curve to project.
+  dir   - [in] The direction of the projection.
+  tol   - [in] The intersection tolerance.
+  output_curves - [out] The output curves. 
+                        NOTE, the caller is responsible 
+                        for destroying these curves.
+Returns:
+  true if successful.
+  false if unsuccessful.
+*/
+bool ProjectCurveToBrep(
+        const ON_Brep& brep, 
+        const ON_Curve& curve, 
+        const ON_3dVector& dir, 
+        double tolerance,
+        ON_SimpleArray<ON_Curve*>& output_curves
+        )
+{
+  ON_3dVector n = dir;
+  if( !n.Unitize() ) 
+    return false;
+ 
+  ON_BoundingBox bbox = brep.BoundingBox();
+  bbox.Union( curve.BoundingBox() );
+ 
+  ON_Surface* pExtrusion = RhinoExtrudeCurveStraight( &curve, dir, bbox.Diagonal().Length() );
+  if( 0 == pExtrusion )
+    return false;
+ 
+  ON_Brep* pBrep = ON_Brep::New();
+  pBrep->Create( pExtrusion );
+ 
+  BOOL rc = RhinoIntersectBreps( *pBrep, brep, tolerance, output_curves );
+  delete pBrep; // Don't leak...
+ 
+  return ( rc ) ? true : false;
+}
+
+/********************ENDUTLITY*************************/
 static bool SelectObjectByUuid( CRhinoDoc& doc, ON_UUID  uuid, bool bRedraw )
 {
   bool rc = false;
@@ -1591,6 +1637,45 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 						 
 			}
 			 ON_BoundingBox bbox;
+			// begin inizio punto
+			for(int i = 0; i < LinesCount; i++ )
+	  {
+		geom[i]->GetBoundingBox( bbox, bbox.IsValid() );
+	  }
+	 
+	  ON_3dPoint base_point = bbox.Center();
+	  ON_SimpleArray<ON_MassProperties> MassProp;
+	  MassProp.Reserve( geom.Count() );
+	  ON_3dPoint maxPoint;
+	  ON_3dPoint a,b;
+	  double maxHspinaZ = 0; 
+	  double maxHspinaX = 0; 
+	  double maxHspinaY = 0; 
+
+	  for(int i = 0; i < geom.Count(); i++ )
+	  {
+		ON_MassProperties* mp = &MassProp.AppendNew();	
+		const ON_Brep* brep = ON_Brep::Cast(geom[i]);
+		if( brep )
+		{
+		  brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
+		  bool dio = brep->GetBoundingBox(a,b);
+			ON_3dPoint c = b;
+			if(c.z > maxHspinaZ) {maxHspinaZ = c.z;}
+			if(c.x > maxHspinaX) {maxHspinaX = c.x;}
+			if(c.y > maxHspinaY) {maxHspinaY = c.y;}
+		}
+	  }
+	  
+	  // il punto finale che varia sara' la x, quando la spina e' disassata.
+	  // in base a un mio ragionamento questo valore e' cosi' determinato:
+		double puntoSfinale = maxHspinaX - maxHspinaY; // da provare.
+
+
+			// end fine punto
+
+
+
 			  ON_3dPoint aaa(0,0,90);
 	  /*for(int i = 0; i < LinesCount; i++ )
 	  {
