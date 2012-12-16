@@ -620,20 +620,38 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		context.m_doc.Redraw();
 	}/*CHIUSURA ELSE LAYER_INDEX < 0 */		
 
-	CRhinoGetObject gc;
-	gc.SetCommandPrompt( L"SELECT LINE TO EXTEND" );
-	gc.SetGeometryFilter( CRhinoGetObject::curve_object );
-	gc.GetObjects( 1, 1 );
-	if(!(gc.CommandResult() == CRhinoCommand::success))
+	//CRhinoGetObject gc;
+	//gc.SetCommandPrompt( L"SELECT LINE TO EXTEND" );
+	//gc.SetGeometryFilter( CRhinoGetObject::curve_object );
+	//gc.GetObjects( 1, 1 );
+	//if(!(gc.CommandResult() == CRhinoCommand::success))
+	//{
+	//	return CRhinoCommand::nothing;
+	//}
+	//const CRhinoObjRef& objref = gc.Object(0);
+	/************************************************************/
+	ON_SimpleArray<CRhinoObject*> objectsPV;
+	int object_countPV;
+	int layer_indexPV = context.m_doc.m_layer_table.FindLayer(plugin.m_dialog->LayerPV);
+
+	if(layer_indexPV > 0)
+	{
+		objectsPV.Empty();
+		object_countPV = context.m_doc.LookupObject( context.m_doc.m_layer_table[layer_indexPV], objectsPV );
+	}
+	/************************************************************/
+	
+	if(object_countPV > 1)
 	{
 		return CRhinoCommand::nothing;
 	}
-	const CRhinoObjRef& objref = gc.Object(0);
-	const ON_Curve* pC = ON_Curve::Cast( objref.Geometry() );
+	const CRhinoObjRef& objref = objectsPV[0];
+	
+	const ON_Curve* pC = ON_Curve::Cast(objref.Geometry());
 	ON_Curve* crv0 = pC->DuplicateCurve();
 
 	bool rc0 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 1, _wtof(plugin.m_dialog->EstLineaDx));
-	bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0,_wtof(plugin.m_dialog->EstLineaSx) );
+	bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0, _wtof(plugin.m_dialog->EstLineaSx));
 	context.m_doc.ReplaceObject(objref, *crv0 );
 	context.m_doc.Redraw();
 
@@ -652,9 +670,9 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	ON_3dPoint pointStart;
 	ON_3dPoint pointEnd;
 
-	/***************************/
-	/*DO THE FILLET CALCULATION*/ 
-	/***************************/
+	/******************************/
+	/*DOING THE FILLET CALCULATION*/ 
+	/******************************/
 	double t0 = 0.0, t1 = 0.0;
 
 	ON_Plane plane;
