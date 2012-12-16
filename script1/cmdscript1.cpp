@@ -1682,6 +1682,207 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 		double puntoSfinale = maxHspinaX - maxHspinaY; // da provare.
 
 
+		/// PROVA INTERSEZIONE
+
+	  
+	  
+	  ON_3dPoint inizio_linea (puntoSfinale,0,0);
+	  ON_3dPoint fine_linea (puntoSfinale,0,130);
+	  ON_Line line_spinette( inizio_linea, fine_linea );
+	  const ON_LineCurve* crv7 = new ON_LineCurve(line_spinette);
+	  
+
+
+	  // context.m_doc.AddCurveObject( line_ugello );
+//begin deseleziona tutto
+	 
+	 
+	  ON_SimpleArray<CRhinoObject*> obj_list;
+	  
+      
+	
+		  int j, obj_count = context.m_doc.LookupObject( layer, obj_list );
+		  for( j = 0; j < obj_count; j++ )
+		  {
+				  CRhinoObject* obj = obj_list[j];
+				  if( obj && obj->IsSelectable() )
+					  obj->UnselectAllSubObjects();
+					  obj->Select(false);
+				  if( obj_count )
+					context.m_doc.Redraw();
+		  }
+		// end deseleziona tutto
+	   //const ON_Object* obj_ptr = context.m_doc.LookupDocumentObject(pvcurva, false);
+//	   CRhinoObjRef& objref5 = CRhinoObject* LookupObject(pvcurva);
+	  
+		//SelectObjectByUuid( context.m_doc, pvcurva, true );
+
+	   //const CRhinoObject* object = context.m_doc.LookupObject( pvcurva );
+	   //ON_TextLog* text_log;
+	   //object->IsValid();
+	   // inizio esempio
+
+		
+		//// Select two curves to intersect
+  //CRhinoGetObject go;
+  //go.SetCommandPrompt( L"Seleziona la linea da intercettare" );
+  //go.SetGeometryFilter( ON::curve_object );
+  //go.GetObjects( 1, 1 );
+  //if( go.CommandResult() != CRhinoCommand::success )
+  //  return go.CommandResult();
+
+		  // inizio parte per inteccettare automaticamente la curva sul fix
+				 int FIXLayer_Index = layer_table.FindLayer( L"fix" );
+	  const CRhinoLayer& FIXLayer = layer_table[FIXLayer_Index];
+			ON_SimpleArray<const ON_Curve*> lines2;
+			ON_SimpleArray<CRhinoObject*> objectsLine2;
+			
+			int LinesCount2 = context.m_doc.LookupObject( FIXLayer, objectsLine2);
+			ON_SimpleArray<const ON_Geometry*> geom2( LinesCount2 );
+			
+			//CRhinoObject* spina = objectsLine[1];
+			for(int i = 0; i < LinesCount2; i++ )
+			{
+				/*if(!objectsLine[i]->Attributes().m_name.Compare("ugello"))*/
+						
+						//context.m_doc.(objectsLine[i]);
+						const ON_Geometry* geo2 =  objectsLine2[i]->Geometry();
+						geom.Append( geo2 );
+						
+						 
+			}
+			 ON_BoundingBox bbox2;
+			// begin inizio punto
+			for(int i = 0; i < LinesCount2; i++ )
+	  {
+		geom2[i]->GetBoundingBox( bbox2, bbox2.IsValid() );
+	  }
+	 
+	  ON_3dPoint base_point2 = bbox2.Center();
+	  ON_SimpleArray<ON_MassProperties> MassProp2;
+	  MassProp2.Reserve( geom2.Count() );
+	  ON_3dPoint maxPoint2;
+	  ON_3dPoint a2,b2;
+	  double maxHspinaZ2 = 0; 
+	  double maxHspinaX2 = 0; 
+	  double maxHspinaY2 = 0; 
+
+	  for(int i = 0; i < geom2.Count(); i++ )
+	  {
+		ON_MassProperties* mp2 = &MassProp2.AppendNew();	
+		const ON_Brep* brep2 = ON_Brep::Cast(geom2[i]);
+		if( brep2 )
+		{
+		  brep2->VolumeMassProperties( *mp2, true, true, false, false, base_point2 );
+		  bool dio2 = brep2->GetBoundingBox(a2,b2);
+			ON_3dPoint c2 = b2;
+			if(c2.z > maxHspinaZ2) {maxHspinaZ2 = c2.z;}
+			if(c2.x > maxHspinaX2) {maxHspinaX2 = c2.x;}
+			if(c2.y > maxHspinaY2) {maxHspinaY2 = c2.y;}
+		}
+	  }
+		  // fine  parte per inteccettare automaticamente la curva sul fix
+ 
+  // Validate input
+  const ON_Curve* curveA = go.Object(0).Curve();
+  const ON_Curve* curveB = crv7;//go.Object(1).Curve();
+	 
+  if( (0 == curveA) | (0 == curveB) )
+    return CRhinoCommand::failure;
+ 
+  // Calculate the intersection
+  double intersection_tolerance = 0.001;
+  double overlap_tolerance = 0.0;
+  ON_SimpleArray<ON_X_EVENT> events;
+  int count = curveA->IntersectCurve(
+        curveB, 
+        events, 
+        intersection_tolerance, 
+        overlap_tolerance
+        );
+ 
+  ON_3dPoint PuntoIntersezione;
+  // Process the results
+  if( count > 0 )
+  {
+	  ::RhinoApp().Print( L"Intersezione punto per spinetta trovato");
+	  
+    int i;
+    for( i = 0; i < events.Count(); i++ )
+    {
+      const ON_X_EVENT& e = events[i];
+      //context.m_doc.AddPointObject( e.m_A[0] );
+      if( e.m_A[0].DistanceTo(e.m_B[0]) > ON_EPSILON )
+      {
+        //context.m_doc.AddPointObject( e.m_B[0] );
+        //context.m_doc.AddCurveObject( ON_Line(e.m_A[0], e.m_B[0]) );
+		PuntoIntersezione = e.m_B[0];
+      }
+    }
+    context.m_doc.Redraw();
+  }
+ 
+
+	
+		
+		//const CRhinoObjRef& objref1 = ref; //era object
+
+	  /*const ON_LineCurve* GetLineCurve( const ON_Curve* pC5 ){
+	  const ON_LineCurve* p = 0;
+	  if( pC5 != 0 )
+		p = ON_LineCurve::Cast( pC5 );
+	  return p;
+		//	}*/
+
+	 // // const ON_LineCurve* pC5 = ON_LineCurve::Cast( ref.Geometry() );
+	 ////  
+		//	ON_Line line1 = crv7->m_line;
+		////	//ON_Line line1 = pC5->
+
+	 //  ON_3dVector v0 = line_ugello.to - line_ugello.from;
+		//v0.Unitize();
+ 
+	 //ON_3dVector v1 = line1.to - line1.from;
+		//v1.Unitize();
+
+		//if( v0.IsParallelTo(v1) != 0 )
+  //{
+  //  RhinoApp().Print( L"Selected lines are parallel.\n" );
+  //  return nothing;
+  //}
+ 
+
+		// ON_Line ray0( line_ugello.from, line_ugello.from + v0 );
+  //ON_Line ray1( line1.from, line1.from + v1 );
+
+  //double s = 0, t = 0;
+  //if( !ON_Intersect(ray0, ray1, &s, &t) )
+  //{
+  //  RhinoApp().Print( L"No intersection found.\n" );
+  //  return nothing;
+  //}
+ 
+  //ON_3dPoint pt0 = line_ugello.from + s * v0;
+  //ON_3dPoint pt1 = line1.from + t * v1;
+  //context.m_doc.AddPointObject( pt0 );
+  //
+  //context.m_doc.Redraw();
+
+
+
+	   //go5.g
+		 //  const CRhinoObjRef& objref5 = go5.;
+	   //CRhinoGetObject;
+	   //CRhinoDoc::LookupDocumentObject(
+
+
+	  //begin calcolo il punto di intersezione per disegnare l'ugello
+	  
+	  
+	  
+	  ON_3dPoint bottom_pt = PuntoIntersezione; // l'altro punto, e.m_A[0], non e' preciso.
+
+		/// FINE INTERSEZIONE
 			// end fine punto
 
 
