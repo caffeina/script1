@@ -381,7 +381,10 @@ void DialogPrincipale::OnBnClickedButton6()
 
 void DialogPrincipale::OnBnClickedButton8()
 {
+	GetDlgItem(IDC_BUTTON2)->EnableWindow(FALSE);
+	UpdateData(true);
 	RhinoApp().RunScript( L"! _TrimCylinder", 0);
+	RhinoApp().RunScript( L"! _AssegnaOggettiLayer", 0);
 	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
 }
 

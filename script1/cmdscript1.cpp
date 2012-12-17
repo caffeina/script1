@@ -18,6 +18,7 @@
 
 /*********************************************************/
 ON_LineCurve CurvaPV;
+ON_3dPointArray m_P;
 bool ExistPVLine = false;
 ON_wString layer_PVLine = L"NONE";
 
@@ -374,7 +375,7 @@ static void ZoomExtents( CRhinoView* view, const ON_3dPointArray& point_array )
   ON_BoundingBox bbox = point_array.BoundingBox();
   if( bbox.IsValid() )
   {
-    double border = 1.1;
+    /*double border = 1.1;
  
     double dx = bbox.m_max.x - bbox.m_min.x;
     dx *= 0.5 * (border - 1.0);
@@ -384,11 +385,11 @@ static void ZoomExtents( CRhinoView* view, const ON_3dPointArray& point_array )
     double dy = bbox.m_max.y - bbox.m_min.y;
     dy *= 0.5 * (border - 1.0);
     bbox.m_max.y += dy;
-    bbox.m_min.y -= dy;
+    bbox.m_min.y -= dy;*/
  
     if( RhinoDollyExtents(current_vp, bbox, zoomed_vp) )
     {
-      view->ActiveViewport().SetVP( zoomed_vp, true );
+      view->ActiveViewport().SetVP( zoomed_vp, false ); // secondo parametro era true
       view->Redraw();
     }
   }
@@ -1415,7 +1416,13 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			}
 			else
 			{
-				::RhinoApp().Print( L"Funzione controllo altezza NOK: CONTROLLARE!! Il valore della testa e' minore del valore minimo di 10 mm. Occorre diminuire l'altezza del fondello o aumentare l'altezza dello stampo.");
+								ON_wString wStr;
+					wStr.Format( L"Funzione controllo altezza NOK: CONTROLLARE!! Il valore della testa e' minore del valore minimo di 10 mm. Occorre diminuire l'altezza del fondello o aumentare l'altezza dello stampo.", EnglishCommandName() );
+					if( context.IsInteractive() )
+						RhinoMessageBox( wStr, EnglishCommandName(), MB_OK );
+					else
+						RhinoApp().Print( wStr );
+				//::RhinoApp().Print( L"Funzione controllo altezza NOK: CONTROLLARE!! Il valore della testa e' minore del valore minimo di 10 mm. Occorre diminuire l'altezza del fondello o aumentare l'altezza dello stampo.");
 			}
 
 			/****************************/
@@ -1850,15 +1857,19 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			/****************************************************/
 	
 			//BEGIN ZOOM ALL
-
- 
+			//porca miseria non funziona bene!!
+ /*
 			CRhinoView* view = RhinoApp().ActiveView();
-			ON_3dPointArray m_P;
-			ON_3dPoint a1(-40,-40,-40);
-			ON_3dPoint a2(40,40,40);
-			m_P.Append(a1);
-			m_P.Append(a2);
-			ZoomExtents(view,m_P);
+			
+			if (!m_P.Count())
+			{
+				ON_3dPoint a1(-40,-40,-40);
+				ON_3dPoint a2(40,40,40);
+				m_P.Append(a1);
+				m_P.Append(a2);
+			}
+				ZoomExtents(view,m_P);
+			*/
 
 			// END ZOOM ALL
 
@@ -3307,6 +3318,135 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	  //}
 
 ////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//
+// BEGIN AssegnaOggettiLayer command
+//
+
+class CCommandAssegnaOggettiLayer : public CRhinoCommand
+{
+public:
+	CCommandAssegnaOggettiLayer() {}
+	~CCommandAssegnaOggettiLayer() {}
+	UUID CommandUUID()
+	{
+		// {EB41C791-9974-41B1-905B-5EC3E32F3203}
+		static const GUID AssegnaOggettiLayerCommand_UUID =
+		{ 0xEB41C791, 0x9974, 0x41B1, { 0x90, 0x5B, 0x5E, 0xC3, 0xE3, 0x2F, 0x32, 0x03 } };
+		return AssegnaOggettiLayerCommand_UUID;
+	}
+	const wchar_t* EnglishCommandName() { return L"AssegnaOggettiLayer"; }
+	const wchar_t* LocalCommandName() { return L"AssegnaOggettiLayer"; }
+	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
+};
+
+// The one and only CCommandAssegnaOggettiLayer object
+static class CCommandAssegnaOggettiLayer theAssegnaOggettiLayerCommand;
+
+CRhinoCommand::result CCommandAssegnaOggettiLayer::RunCommand( const CRhinoCommandContext& context )
+{
+	Cscript1PlugIn& plugin = script1PlugIn();
+		if( !plugin.IsDlgVisible() )
+		{
+			return CRhinoCommand::nothing;
+		}
+
+	  CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+	  
+	  ON_SimpleArray<CRhinoObject*> objectsLine;
+	   /****************/
+	  /*FIND THE LAYER*/
+	  /****************/
+	  int Cyl_layer_index[4] = {context.m_doc.m_layer_table.FindLayer(L"FISSO"), 
+								context.m_doc.m_layer_table.FindLayer(L"MATRICE"), 
+								context.m_doc.m_layer_table.FindLayer(L"FONDELLO"),
+								context.m_doc.m_layer_table.FindLayer(L"pv")	
+								};
+	  ////
+
+	  /*if((context.m_doc.m_layer_table.FindLayer(L"FISSO")    > 0)  || 
+		   (context.m_doc.m_layer_table.FindLayer(L"MATRICE")  > 0)  ||
+		   (context.m_doc.m_layer_table.FindLayer(L"FONDELLO") > 0))
+		{
+			ON_SimpleArray<CRhinoObject*> objects1;
+			ON_SimpleArray<CRhinoObject*> objects2;
+			ON_SimpleArray<CRhinoObject*> objects3;
+			objects1.Empty();
+			objects2.Empty();
+			objects3.Empty();
+			if((context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"FISSO")],    objects1) > 0) ||
+			   (context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"MATRICE")],  objects2) > 0) ||
+			   (context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"FONDELLO")], objects3) > 0))
+			
+		}*/
+
+	  ON_SimpleArray<CRhinoObject*> objects1;
+	  objects1.Empty();
+	  int LinesCount = context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"pv")],objects1);
+	   /*********************************************************************/
+	  /*PUTTING THE THREE PARTS OF THE ORIGINAL CYLINDER INTO RELATED LAYER*/
+	  /*********************************************************************/
+	 
+		
+		///////////////////////////////////////////////////////////////////
+	  
+	  
+	  for (int i = 0; i < LinesCount; i++ )
+			{
+				if(
+					(!objects1[i]->Attributes().m_name.Compare("SPINACIRCLE3")) ||
+					(!objects1[i]->Attributes().m_name.Compare("SPINACIRCLE4"))
+					)
+						{
+							CRhinoObjectAttributes atts( objects1[i]->Attributes() );
+							atts.m_layer_index = Cyl_layer_index[2];// al fondello
+							CRhinoObjRef ref(objects1[i]);
+							context.m_doc.ModifyObjectAttributes(ref, atts);
+						}
+				if(
+					(!objects1[i]->Attributes().m_name.Compare("SPINACIRCLE1")) ||
+					(!objects1[i]->Attributes().m_name.Compare("SPINACIRCLE2")) ||
+					(!objects1[i]->Attributes().m_name.Compare("SPINAFERMO1")) ||
+					(!objects1[i]->Attributes().m_name.Compare("SPINAFERMO2")) ||
+					(!objects1[i]->Attributes().m_name.Compare("SPINAFERMO3"))
+					)
+						{
+							CRhinoObjectAttributes atts( objects1[i]->Attributes() );
+							atts.m_layer_index = Cyl_layer_index[0];// al fisso
+							CRhinoObjRef ref(objects1[i]);
+							context.m_doc.ModifyObjectAttributes(ref, atts);
+						}
+				if(
+					(!objects1[i]->Attributes().m_name.Compare("SPINALINEA1")) ||
+					(!objects1[i]->Attributes().m_name.Compare("SPINALINEA2")) ||
+					(!objects1[i]->Attributes().m_name.Compare("SPINALINEA3")) ||
+					(!objects1[i]->Attributes().m_name.Compare("SPINALINEA4"))
+					)
+						{
+							CRhinoObjectAttributes atts( objects1[i]->Attributes() );
+							atts.m_layer_index = Cyl_layer_index[1];// alla matrice. ti amo romina
+							CRhinoObjRef ref(objects1[i]);
+							context.m_doc.ModifyObjectAttributes(ref, atts);
+						}
+			}
+	  context.m_doc.Redraw();
+
+
+
+
+	return CRhinoCommand::success;
+}
+
+//
+// END AssegnaOggettiLayer command
+//
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+
+
 ////////////////////////////////////////////////////////////////
 //
 // BEGIN catturaPV command
