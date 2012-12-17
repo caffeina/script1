@@ -216,7 +216,7 @@ bool SplitBrep(CRhinoDoc& doc, const CRhinoObject* object1, const CRhinoObject* 
 			const ON_Brep* brep = ON_Brep::Cast(pieces[i]);
 			if( brep )
 			{
-				brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
+				brep->VolumeMassProperties( *mp, true, true, false, false, base_point);
 				maxPoint[i] = MassProp.At(i)->Centroid();
 				MassProp.At(i)->m_mass_type = 2;
 				maxArea[i]  = MassProp.At(i)->Area();
@@ -227,8 +227,16 @@ bool SplitBrep(CRhinoDoc& doc, const CRhinoObject* object1, const CRhinoObject* 
 		/*FINDING THE MAX VALUE OF OBJECT AREA*/
 		/**************************************/
 		int k = 0;
-		if( sqrt((maxPoint[0].x)*(maxPoint[0].x) + (maxPoint[0].y)*(maxPoint[0].y) + (maxPoint[0].z)*(maxPoint[0].z)) > 
-			sqrt((maxPoint[1].x)*(maxPoint[1].x) + (maxPoint[1].y)*(maxPoint[1].y) + (maxPoint[1].z)*(maxPoint[1].z) ))
+		//if( sqrt((maxPoint[0].x)*(maxPoint[0].x) + (maxPoint[0].y)*(maxPoint[0].y) + (maxPoint[0].z)*(maxPoint[0].z)) > 
+		//	sqrt((maxPoint[1].x)*(maxPoint[1].x) + (maxPoint[1].y)*(maxPoint[1].y) + (maxPoint[1].z)*(maxPoint[1].z) ))
+		//{
+		//	k = 0;
+		//}
+		//else
+		//{
+		//	k = 1;
+		//}
+		if(maxArea[1] > maxArea[0])
 		{
 			k = 0;
 		}
@@ -236,6 +244,7 @@ bool SplitBrep(CRhinoDoc& doc, const CRhinoObject* object1, const CRhinoObject* 
 		{
 			k = 1;
 		}
+
 
 		int count = pieces.Count();
 		if( (count == 0) | (count == 1) )
@@ -3481,27 +3490,34 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 		if(!objects[i]->Attributes().m_name.Compare("SURFTOP"))
 		{
 			ON_3dPoint pt = ON_3dPoint(0.0, 0.0, 250.0);
-			double u, v;
+			double u = 0.0;
+			double v = 0.0;
 			ON_3dVector du, dv, dir;
-			const ON_BrepFace* face = ON_BrepFace::Cast(objects[i]->Geometry());
-			if(face)
+			/***********************/
+			/*GET THE SELECTED FACE*/
+			/***********************/
+			const CRhinoObjRef& ref = objects[i];
+			//const ON_BrepFace* face = ON_BrepFace::Cast(objects[i]->Geometry());
+			const ON_BrepFace* face = ref.Face();
+			if(face && face->GetClosestPoint(pt, &u, &v) )
 			{
 				if( face->EvNormal(u, v, pt, du, dv, dir) )
 				{
 				  // IF THE FACE ORIENTATION IS OPPOSITE OF 
 				  // THE NATURAL SURFACE ORIENTATION, THEN
 				  // REVERSE THE DIRECTION OF THE VECTOR.
-				  if( face->m_bRev )
+				  if( !face->m_bRev )
 				  {
 					dir.Reverse();
+					context.m_doc.Redraw();
 				  }
 				}				
 			}
 		}
 	}
-	//OutBreps2.Empty();
-	//something_happened = false;
-	//tolerance = context.m_doc.AbsoluteTolerance();
+	OutBreps2.Empty();
+	something_happened = false;
+	tolerance = context.m_doc.AbsoluteTolerance();
 
 	//rc = RhinoBooleanUnion( InBreps, tolerance, &something_happened, OutBreps2);
 	//if( !rc | !something_happened )
@@ -3537,54 +3553,54 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 
 	/*****************************************************************************************/
 
-	//OutBreps.Empty();
-	//objects.Empty();
-	////layer_table = context.m_doc.m_layer_table;
-	//layer_index = context.m_doc.m_layer_table.FindLayer(L"FONDELLO");
-	////layer = context.m_doc.m_layer_table[layer_index];
-	//object_count = context.m_doc.LookupObject( context.m_doc.m_layer_table[layer_index], objects );
-	//InBreps.Empty();
-	//for(int i = 0; i < object_count; i++ )
-	//{
-	//	const ON_Brep* brep = ON_Brep::Cast(objects[i]->Geometry());
-	//	objects[i]->Highlight(true);
-	//	if( brep )
-	//	{
-	//		InBreps.Append( brep );
-	//	}
-	//}
-	//OutBreps2.Empty();
-	//something_happened = false;
-	//tolerance = context.m_doc.AbsoluteTolerance()*0.1;
+	////OutBreps.Empty();
+	////objects.Empty();
+	//////layer_table = context.m_doc.m_layer_table;
+	////layer_index = context.m_doc.m_layer_table.FindLayer(L"FONDELLO");
+	//////layer = context.m_doc.m_layer_table[layer_index];
+	////object_count = context.m_doc.LookupObject( context.m_doc.m_layer_table[layer_index], objects );
+	////InBreps.Empty();
+	////for(int i = 0; i < object_count; i++ )
+	////{
+	////	const ON_Brep* brep = ON_Brep::Cast(objects[i]->Geometry());
+	////	objects[i]->Highlight(true);
+	////	if( brep )
+	////	{
+	////		InBreps.Append( brep );
+	////	}
+	////}
+	////OutBreps2.Empty();
+	////something_happened = false;
+	////tolerance = context.m_doc.AbsoluteTolerance()*0.1;
 
-	//rc = RhinoBooleanUnion( InBreps, tolerance, &something_happened, OutBreps2);
-	//if( !rc | !something_happened )
-	//{
-	//	for(int i = 0; i < OutBreps2.Count(); i++ )
-	//	{
-	//	  delete OutBreps2[i];
-	//	  OutBreps2[i] = 0;
-	//	}
-	//	return CRhinoCommand::nothing;
-	//}
-	//for(int i = 0; i < OutBreps2.Count(); i++ )
-	//{
-	//ON_Brep* brep   = OutBreps2[i];
-	//if( brep )
-	//{
- //     CRhinoObjectAttributes pAttributes(objects[0]->Attributes());
-	//  pAttributes.m_layer_index = layer_index;
-	//  context.m_doc.AddBrepObject( *brep, &pAttributes);
-	//  brep = 0;
-	//  delete OutBreps2[i];
-	//  OutBreps2[i] = 0;
-	//}
-	//}
-	//for(int i = 0; i < InBreps.Count(); i++ )
-	//{
-	//	context.m_doc.DeleteObject(objects[i]);
-	//}
-	//context.m_doc.Redraw();
+	////rc = RhinoBooleanUnion( InBreps, tolerance, &something_happened, OutBreps2);
+	////if( !rc | !something_happened )
+	////{
+	////	for(int i = 0; i < OutBreps2.Count(); i++ )
+	////	{
+	////	  delete OutBreps2[i];
+	////	  OutBreps2[i] = 0;
+	////	}
+	////	return CRhinoCommand::nothing;
+	////}
+	////for(int i = 0; i < OutBreps2.Count(); i++ )
+	////{
+	////ON_Brep* brep   = OutBreps2[i];
+	////if( brep )
+	////{
+ ////     CRhinoObjectAttributes pAttributes(objects[0]->Attributes());
+	////  pAttributes.m_layer_index = layer_index;
+	////  context.m_doc.AddBrepObject( *brep, &pAttributes);
+	////  brep = 0;
+	////  delete OutBreps2[i];
+	////  OutBreps2[i] = 0;
+	////}
+	////}
+	////for(int i = 0; i < InBreps.Count(); i++ )
+	////{
+	////	context.m_doc.DeleteObject(objects[i]);
+	////}
+	////context.m_doc.Redraw();
 
 
 	return CRhinoCommand::success;

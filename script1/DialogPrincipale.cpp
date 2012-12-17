@@ -98,8 +98,7 @@ BEGIN_MESSAGE_MAP(DialogPrincipale, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON6, &DialogPrincipale::OnBnClickedButton6)
 	ON_BN_CLICKED(IDC_BUTTON8, &DialogPrincipale::OnBnClickedButton8)
 	ON_BN_CLICKED(IDC_BUTTON7, &DialogPrincipale::OnBnClickedButton7)
-	ON_BN_CLICKED(IDC_BUTTON14, &DialogPrincipale::OnBnClickedButton14)
-	
+	ON_BN_CLICKED(IDC_BUTTON14, &DialogPrincipale::OnBnClickedButton14)	
 	ON_BN_CLICKED(IDC_BUTTON4, &DialogPrincipale::OnBnClickedButton4)
 	ON_EN_CHANGE(IDC_EDIT1, &DialogPrincipale::OnEnChangeEdit1)
 END_MESSAGE_MAP()
@@ -377,13 +376,7 @@ void DialogPrincipale::OnBnClickedButton5()
 
 void DialogPrincipale::OnBnClickedButton6()
 {
-	 /*DialogPV dlg( CWnd::FromHandle(::RhinoApp().MainWnd()) );
-	 dlg.DoModal();*/
-	/*GetDlgItem(IDC_BUTTON1)->EnableWindow(TRUE);
-	UpdateData(true);
-	RhinoApp().RunScript( L"! _DialogPV", 0 );*/
-
-  
+	RhinoApp().RunScript( L"!_TrimMatrix", 0 ); 
 }
 
 void DialogPrincipale::OnBnClickedButton8()
@@ -404,11 +397,8 @@ void DialogPrincipale::OnBnClickedButton14()
 }
 
 void DialogPrincipale::OnBnClickedButton4()
-{
+{	
 	
-	//RhinoApp().RunScript( L"! _catturaPV", 0 );
-	
-
 }
 
 void DialogPrincipale::OnEnChangeEdit1()
