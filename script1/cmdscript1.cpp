@@ -27,6 +27,9 @@ ON_wString layer_PVLine = L"NONE";
 ON_wString LAYER_NAME_PV;
 ON_UUID pvcurva;
 ON_3dPoint AltezzaTacco;
+ON_3dPoint	puntoAppoggio1;
+ON_3dPoint	puntoAppoggio2;
+ON_Plane planeAppoggio;
 
 /********************UTLITY*************************/
 /*
@@ -81,7 +84,8 @@ bool AddAnnotationText(
       const wchar_t* text,  // the text
       double height,        // height of text item
       const wchar_t* font,  // font or face name
-      int style             // style 0=normal, 1=bold,
+      int style,            // style 0=normal, 1=bold,
+	  ON_Plane pl			// plane to use
       )                     //       2=italic, 3=bold and italic
 {
   bool rc = false;
@@ -100,7 +104,7 @@ bool AddAnnotationText(
   if( style < 0 | style > 3 )
     style = 0;
  
-  ON_Plane plane = RhinoActiveCPlane();
+  ON_Plane plane = pl;  //RhinoActiveCPlane();
   plane.SetOrigin( pt );
  
   ON_TextEntity2* text_entity = new ON_TextEntity2;
@@ -735,8 +739,10 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	plane.plane_equation.y = 1.0;
 
 	pointStart = crv0->PointAtStart();
+	puntoAppoggio1 = pointStart;
 
 	pointEnd   = crv0->PointAtEnd();
+	puntoAppoggio2 = pointEnd;
 
 	ON_3dPoint point0((pointStart.x - posLen*cos(betaAngle*acos(-1.0)/180.0)), 0.0, (pointStart.z + posLen*sin(betaAngle*acos(-1.0)/180.0)));
 	ON_3dPoint point1((pointEnd.x + antLen*cos(alphaAngle*acos(-1.0)/180.0)), 0.0, (pointEnd.z - antLen*sin(alphaAngle*acos(-1.0)/180.0)));
@@ -779,6 +785,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 
 		double angle = acos( radial0 * radial1 );
 		ON_Plane fillet_plane( plane.Origin(), radial0, radial1 );
+		planeAppoggio = fillet_plane;
 		ON_Arc fillet( fillet_plane, plane.Origin(), antRad, angle );
 
 		/******************/
@@ -1013,8 +1020,11 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	plane.plane_equation.y = 1.0;
 
 	pointStart = crv0->PointAtStart();
+	puntoAppoggio1 = pointStart;
 
 	pointEnd   = crv0->PointAtEnd();
+	puntoAppoggio2 = pointEnd;
+
 
 	ON_3dPoint point0((pointStart.x - posLen*cos(betaAngle*acos(-1.0)/180.0)), 0.0, (pointStart.z + posLen*sin(betaAngle*acos(-1.0)/180.0)));
 	ON_3dPoint point1((pointEnd.x + antLen*cos(alphaAngle*acos(-1.0)/180.0)), 0.0, (pointEnd.z - antLen*sin(alphaAngle*acos(-1.0)/180.0)));
@@ -1932,16 +1942,47 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			// end aniello accendere tutti i layer
 
 			/*************** BEGIN MARCATURA *****************************/
-			ON_3dPoint kk(40,40,40);
-			ON_wString lullu(L"pprova");
-			ON_wString carattere(L"Arial");
-			double altezza = 5;
+			ON_3dPoint kk(puntoAppoggio1);
+			ON_3dPoint kk1(puntoAppoggio2);
+			ON_3dVector kk2 = kk1 - kk;
+			//double dio = kk2.LengthAndUnitize();
+			//kk2.x*=8;
+			//kk2.z*=8;
+			ON_3dPoint kk3 (kk);
+			//ON_3dVector tr(10,0,0);
+			ON_Xform xform;
+			//xform.Translation(kk2);
+			xform.Translation(14,14,4);
 			
-			if (AddAnnotationText(context.m_doc,kk,lullu,altezza,carattere,1))
+			kk3.Transform(xform);
+			
+			//ON_3dPoint point0
+			ON_wString lullu(L"Monti");
+			ON_wString carattere(L"McSoft_Font-1");
+			double altezza = 6;
+			//ON_Plane pl (ON_zx_plane);
+			ON_Plane pl (kk1,kk) ;
+			
+			if (AddAnnotationText(context.m_doc,kk3,lullu,altezza,carattere,1,pl))
 			{
 				context.m_doc.Redraw();
 			}
-
+			ON_wString lullu2(L"12345");
+			xform.Translation(14,4,4);
+			ON_3dPoint kk4 (kk);
+			kk4.Transform(xform);
+			if (AddAnnotationText(context.m_doc,kk4,lullu2,altezza,carattere,1,pl))
+			{
+				context.m_doc.Redraw();
+			}
+			ON_wString lullu3(L"ClientCod");
+			xform.Translation(14,-8,4);
+			ON_3dPoint kk5 (kk);
+			kk5.Transform(xform);
+			if (AddAnnotationText(context.m_doc,kk5,lullu3,altezza,carattere,1,pl))
+			{
+				context.m_doc.Redraw();
+			}
 
 			/*************** END MARCATURA *****************************/
 
