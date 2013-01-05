@@ -1347,13 +1347,14 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			}
 
 			/*********************************************/
-			/*               DA SISTEMARE                */
+			/*             GESTIONE QUOTE:  DA SISTEMARE */
 			/*********************************************/
 			
 			CRhinoSnapContext snap;
 			bool dec1 = snap.SnapToPoint(ON_3dPoint(63.5, 0.0, (height - altfondello)));
 			bool dec2 = snap.SnapToPoint(ON_3dPoint(63.5, 0.0, -altfondello));
 			bool dec3 = snap.SnapToPoint(ON_3dPoint(63.5, 0.0, 0.0));
+			bool dec4 = snap.SnapToPoint(ON_3dPoint(-63.5, 0.0, -altfondello));
 			if(dec1 && dec2)
 			{
 				CRhinoLinearDimension* dim_obj = new CRhinoLinearDimension();
@@ -1407,6 +1408,47 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 				dim_obj->SetPoint( 3, ON_2dPoint(u, (v + height/2)) );
 
 				dim_obj->UpdateText();
+				
+				if( context.m_doc.AddObject(dim_obj) )
+				{
+					context.m_doc.Redraw();
+				}		
+				else
+				{
+					delete dim_obj;
+				}
+				
+			}
+			/*********************************************/
+			/*  DA SISTEMARE: QUOTA FONDELLO ANCHE A SINISTRA         */
+			/*********************************************/
+			if(dec4 && dec3)
+			{
+				CRhinoLinearDimension* dim_obj = new CRhinoLinearDimension();
+				
+				//ON_Plane plane( ON_zx_plane );
+				ON_3dVector x(0,0,1);
+				ON_3dVector y(1,0,0);
+				//ON_3dVector z(0,0,1);
+				ON_3dPoint Origin;
+				ON_Plane plane(Origin,x,y);
+				plane.SetOrigin( ON_3dPoint(-63.5, 0.0, 0.0) );
+				dim_obj->SetPlane( plane );
+				ON_3dPoint pt_1(-63.5, 0.0, 0.0);
+				ON_3dPoint pt_2(-63.5, 0.0, -altfondello);
+
+				double u,v;
+			
+				plane.ClosestPointTo( pt_1, &u, &v );
+				dim_obj->SetPoint( 0, ON_2dPoint(u, v) );
+				dim_obj->SetPoint( 1, ON_2dPoint(u, -(v + height/2)) );
+
+
+				plane.ClosestPointTo( pt_2, &u, &v );
+				dim_obj->SetPoint( 2, ON_2dPoint(u, v) );
+				dim_obj->SetPoint( 3, ON_2dPoint(u, -(v + height/2)) );
+
+				dim_obj->UpdateText();
 				 
 				if( context.m_doc.AddObject(dim_obj) )
 				{
@@ -1417,6 +1459,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 					delete dim_obj;
 				}
 			}
+			
 			/*********************************************/
 			/*               DA SISTEMARE  By Nello      */
 			/*********************************************/

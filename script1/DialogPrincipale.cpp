@@ -108,7 +108,9 @@ END_MESSAGE_MAP()
 
 void DialogPrincipale::OnBnClickedCancel()
 {
-	OnCancel();
+	GetDlgItem(IDC_BUTTON2)->EnableWindow(TRUE);
+	UpdateData(true);
+	//OnCancel();
 	//RhinoApp().RunScript( L"! _Undo", 0 );
 }
 
