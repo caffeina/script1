@@ -30,6 +30,7 @@ ON_3dPoint AltezzaTacco;
 ON_3dPoint	puntoAppoggio1;
 ON_3dPoint	puntoAppoggio2;
 ON_Plane planeAppoggio;
+unsigned int OggettoMarcatura;
 
 /********************UTLITY*************************/
 /*
@@ -1605,7 +1606,7 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			  // Process the results
 			  if( count > 0 )
 			  {
-				  ::RhinoApp().Print( L"Intersezione punto per Piano Visionale Spina Centraggio trovato");
+				  ::RhinoApp().Print( L"Intersezione punto per Piano Visionale Spina Centraggio trovato \n");
 				  
 				int i;
 				for( i = 0; i < events.Count(); i++ )
@@ -1984,53 +1985,11 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			context.m_doc.Redraw();
 			// end aniello accendere tutti i layer
 
-			/*************** BEGIN MARCATURA *****************************/
-			ON_3dPoint kk(puntoAppoggio1);
-			ON_3dPoint kk1(puntoAppoggio2);
-			ON_3dVector kk2 = kk1 - kk;
-			//double dio = kk2.LengthAndUnitize();
-			//kk2.x*=8;
-			//kk2.z*=8;
-			ON_3dPoint kk3 (kk);
-			//ON_3dVector tr(10,0,0);
-			ON_Xform xform;
-			//xform.Translation(kk2);
-			xform.Translation(14,14,4);
 			
-			kk3.Transform(xform);
-			
-			//ON_3dPoint point0
-			ON_wString lullu(L"Monti");
-			ON_wString carattere(L"McSoft_Font-1");
-			double altezza = 6;
-			//ON_Plane pl (ON_zx_plane);
-			ON_Plane pl (kk1,kk) ;
-			
-			if (AddAnnotationText(context.m_doc,kk3,lullu,altezza,carattere,1,pl))
-			{
-				context.m_doc.Redraw();
-			}
-			ON_wString lullu2(L"12345");
-			xform.Translation(14,4,4);
-			ON_3dPoint kk4 (kk);
-			kk4.Transform(xform);
-			if (AddAnnotationText(context.m_doc,kk4,lullu2,altezza,carattere,1,pl))
-			{
-				context.m_doc.Redraw();
-			}
-			ON_wString lullu3(L"ClientCod");
-			xform.Translation(14,-8,4);
-			ON_3dPoint kk5 (kk);
-			kk5.Transform(xform);
-			if (AddAnnotationText(context.m_doc,kk5,lullu3,altezza,carattere,1,pl))
-			{
-				context.m_doc.Redraw();
-			}
-
-			/*************** END MARCATURA *****************************/
 
 
   return CRhinoCommand::success;
+
 }
 
 
@@ -4648,6 +4607,161 @@ CRhinoCommand::result CCommandGenSpineCentraggio::RunCommand( const CRhinoComman
 
 //
 // END GenSpineCentraggio command
+//
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+
+
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//
+// BEGIN BeginMarcatura command
+//
+
+class CCommandBeginMarcatura : public CRhinoCommand
+{
+public:
+	CCommandBeginMarcatura() {}
+	~CCommandBeginMarcatura() {}
+	UUID CommandUUID()
+	{
+		// {46DE0C31-7A2A-4D3B-BF5A-221414DB8D22}
+		static const GUID BeginMarcaturaCommand_UUID =
+		{ 0x46DE0C31, 0x7A2A, 0x4D3B, { 0xBF, 0x5A, 0x22, 0x14, 0x14, 0xDB, 0x8D, 0x22 } };
+		return BeginMarcaturaCommand_UUID;
+	}
+	const wchar_t* EnglishCommandName() { return L"BeginMarcatura"; }
+	const wchar_t* LocalCommandName() { return L"BeginMarcatura"; }
+	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
+};
+
+// The one and only CCommandBeginMarcatura object
+static class CCommandBeginMarcatura theBeginMarcaturaCommand;
+
+CRhinoCommand::result CCommandBeginMarcatura::RunCommand( const CRhinoCommandContext& context )
+{
+	
+	
+	/*ON_wString wStr;
+	wStr.Format( L"The \"%s\" command is under construction.\n", EnglishCommandName() );
+	if( context.IsInteractive() )
+		RhinoMessageBox( wStr, EnglishCommandName(), MB_OK );
+	else
+		RhinoApp().Print( wStr );*/
+
+	unsigned int first_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+	OggettoMarcatura = first_sn;
+	return CRhinoCommand::success;
+}
+
+//
+// END BeginMarcatura command
+//
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+
+
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//
+// BEGIN EndMarcatura command
+//
+
+class CCommandEndMarcatura : public CRhinoCommand
+{
+public:
+	CCommandEndMarcatura() {}
+	~CCommandEndMarcatura() {}
+	UUID CommandUUID()
+	{
+		// {61129EEB-3878-4EB3-A25F-875A3F469697}
+		static const GUID EndMarcaturaCommand_UUID =
+		{ 0x61129EEB, 0x3878, 0x4EB3, { 0xA2, 0x5F, 0x87, 0x5A, 0x3F, 0x46, 0x96, 0x97 } };
+		return EndMarcaturaCommand_UUID;
+	}
+	const wchar_t* EnglishCommandName() { return L"EndMarcatura"; }
+	const wchar_t* LocalCommandName() { return L"EndMarcatura"; }
+	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
+};
+
+// The one and only CCommandEndMarcatura object
+static class CCommandEndMarcatura theEndMarcaturaCommand;
+
+CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandContext& context )
+{
+	
+
+
+	/*************** BEGIN MARCATURA *****************************/
+			ON_3dPoint kk(puntoAppoggio1);
+			ON_3dPoint kk1(puntoAppoggio2);
+			ON_3dVector kk2 = kk1 - kk;
+			//double dio = kk2.LengthAndUnitize();
+			//kk2.x*=8;
+			//kk2.z*=8;
+			ON_3dPoint kk3 (kk);
+			//ON_3dVector tr(10,0,0);
+			ON_Xform xform;
+			//xform.Translation(kk2);
+			xform.Translation(14,14,4);
+			
+			kk3.Transform(xform);
+			
+			//ON_3dPoint point0
+			//ON_wString lullu(L"Monti");
+			//ON_wString carattere(L"McSoft_Font-1");
+			//double altezza = 6;
+			//ON_Plane pl (ON_zx_plane);
+			ON_Plane pl (kk1,kk) ;
+			
+			
+			
+			
+			unsigned int first_sn = OggettoMarcatura + 1;
+			unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+			const CRhinoObject* objN = context.m_doc.LookupObjectByRuntimeSerialNumber( first_sn );
+			const CRhinoObjRef& objref = objN;
+						if( first_sn == next_sn )
+				return CRhinoCommand::nothing;
+			  else
+			  {
+				  ON_wString obj_name = L"MARCATURA";
+				  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
+			  }
+			//objN->Select(true);
+			//objref.t
+
+			/*if (AddAnnotationText(context.m_doc,kk3,lullu,altezza,carattere,1,pl))
+			{
+				context.m_doc.Redraw();
+			}*/
+			/*ON_wString lullu2(L"12345");
+			xform.Translation(14,4,4);
+			ON_3dPoint kk4 (kk);
+			kk4.Transform(xform);
+			if (AddAnnotationText(context.m_doc,kk4,lullu2,altezza,carattere,1,pl))
+			{
+				context.m_doc.Redraw();
+			}
+			ON_wString lullu3(L"ClientCod");
+			xform.Translation(14,-8,4);
+			ON_3dPoint kk5 (kk);
+			kk5.Transform(xform);
+			if (AddAnnotationText(context.m_doc,kk5,lullu3,altezza,carattere,1,pl))
+			{
+				context.m_doc.Redraw();
+			}*/
+
+			/*************** END MARCATURA *****************************/
+	return CRhinoCommand::success;
+}
+
+//
+// END EndMarcatura command
 //
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////

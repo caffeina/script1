@@ -112,6 +112,19 @@ void DialogPrincipale::OnBnClickedCancel()
 	UpdateData(true);
 	//OnCancel();
 	//RhinoApp().RunScript( L"! _Undo", 0 );
+	 RhinoApp().RunScript( L"_-Line 0,0,0 10,10,0", 0 );
+  RhinoApp().RunScript( L"_SelLast", 0 );
+  RhinoApp().RunScript( L"_-Properties _Object _Color _Object 255,0,0 _Enter _Enter", 0 );
+  RhinoApp().RunScript( L"_-Circle 0,0,0 10", 0 );
+  RhinoApp().RunScript( L"_SelLast", 0 );
+  RhinoApp().RunScript( L"_-Properties _Object _Color _Object 0,0,255 _Enter _Enter", 0 );
+  //RhinoApp().RunScript( L"_-TextObject Prova 10,10,0", 0 );
+  // ::RhinoApp().RunScript(L"! _-TextObject ");
+  RhinoApp().RunScript(L"_-TextObject GroupOutput=No FontName=McSoft_Font-1 Italic=No Bold=No Height=30 Output=Curves Test 0,0,0");
+  //RhinoApp().RunScript(L"_-TextObject _R=No FontName=Arial Italic=No Bold=No Height=10 Output=Curves Test 0,0,0");
+	
+  UpdateData(true);
+
 }
 
 
@@ -321,6 +334,9 @@ void DialogPrincipale::OnBnClickedButton2()
 	UpdateData(true);
 	RhinoApp().RunScript( L"! _GenUgello", 0);
 	RhinoApp().RunScript( L"! _GenSpineCentraggio", 0);
+	RhinoApp().RunScript( L"! _BeginMarcatura", 0);
+	RhinoApp().RunScript( L"_-TextObject GroupOutput=No FontName=McSoft_Font-1 Italic=No Bold=No Height=6 Output=Curves Monti 0,0,0");
+	RhinoApp().RunScript( L"! _EndMarcatura", 0);
 
 }
 
