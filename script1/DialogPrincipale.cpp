@@ -112,18 +112,18 @@ void DialogPrincipale::OnBnClickedCancel()
 	UpdateData(true);
 	//OnCancel();
 	//RhinoApp().RunScript( L"! _Undo", 0 );
-	 RhinoApp().RunScript( L"_-Line 0,0,0 10,10,0", 0 );
-  RhinoApp().RunScript( L"_SelLast", 0 );
-  RhinoApp().RunScript( L"_-Properties _Object _Color _Object 255,0,0 _Enter _Enter", 0 );
-  RhinoApp().RunScript( L"_-Circle 0,0,0 10", 0 );
-  RhinoApp().RunScript( L"_SelLast", 0 );
-  RhinoApp().RunScript( L"_-Properties _Object _Color _Object 0,0,255 _Enter _Enter", 0 );
+	 //RhinoApp().RunScript( L"_-Line 0,0,0 10,10,0", 0 );
+  //RhinoApp().RunScript( L"_SelLast", 0 );
+  //RhinoApp().RunScript( L"_-Properties _Object _Color _Object 255,0,0 _Enter _Enter", 0 );
+  //RhinoApp().RunScript( L"_-Circle 0,0,0 10", 0 );
+  //RhinoApp().RunScript( L"_SelLast", 0 );
+  //RhinoApp().RunScript( L"_-Properties _Object _Color _Object 0,0,255 _Enter _Enter", 0 );
   //RhinoApp().RunScript( L"_-TextObject Prova 10,10,0", 0 );
   // ::RhinoApp().RunScript(L"! _-TextObject ");
-  RhinoApp().RunScript(L"_-TextObject GroupOutput=No FontName=McSoft_Font-1 Italic=No Bold=No Height=30 Output=Curves Test 0,0,0");
+  //RhinoApp().RunScript(L"_-TextObject GroupOutput=No FontName=McSoft_Font-1 Italic=No Bold=No Height=30 Output=Curves Test 0,0,0");
   //RhinoApp().RunScript(L"_-TextObject _R=No FontName=Arial Italic=No Bold=No Height=10 Output=Curves Test 0,0,0");
 	
-  UpdateData(true);
+  //UpdateData(true);
 
 }
 
@@ -377,24 +377,14 @@ void DialogPrincipale::OnEnChangeEdit5()
 
 void DialogPrincipale::OnBnClickedButton5()
 {
-	//RhinoApp().RunScript( L"! _TCone", 0 );
 	UpdateData(true);
 	RhinoApp().RunScript( L"! _GenUgello", 0 );
-	//RhinoApp().EnterCommand
-	//RhinoApp().ExecuteCommand
-	//RhinoApp().
-	//RhinoApp().RunMenuScript( L"! d");
-	//RhinoApp().RunScript( L"! _d", 0 );
-	//RhinoApp().RunScript( L"! _6,5", 0 );
-	//RhinoApp().Print( L"LAYER \ DOES NOT EXIST.\n" );
-
-
-
 }
 
 void DialogPrincipale::OnBnClickedButton6()
 {
 	RhinoApp().RunScript( L"!_TrimMatrix", 0 ); 
+	//RhinoApp().RunScript(L"_Trim");
 }
 
 void DialogPrincipale::OnBnClickedButton8()
