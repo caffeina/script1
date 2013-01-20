@@ -2873,14 +2873,10 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 	/*FINDING THE OBJECT-INDEX OF THE THREE PARTS OF ORIGINAL CYLINDER*/
 	/******************************************************************/
 
-	  /******************************************************************/
-	  /*FINDING THE OBJECT-INDEX OF THE THREE PARTS OF ORIGINAL CYLINDER*/
-	  /******************************************************************/
-
-	  int *cylinders = new int[countCylnds];
-	  countCylnds = 0;
-	  for(int i = 0; i < object_count; i++)
-	  {
+	int *cylinders = new int[countCylnds];
+	countCylnds = 0;
+	for(int i = 0; i < object_count; i++)
+	{
 		object = objects[ i ];
 
 		/*MAKE COPY OF OBJECT ATTRIBUTES. THIS OBJECTS*/ 
@@ -2894,81 +2890,81 @@ CRhinoCommand::result CCommandTrimCylinder::RunCommand( const CRhinoCommandConte
 			cylinders[countCylnds] = i;
 			countCylnds++;
 		}/*CHIUSURA IF CILINDRO*/
-	  }/*CHIUSURA LOOP SUGLI OGGETTI*/
+	}/*CHIUSURA LOOP SUGLI OGGETTI*/
 
-	  ON_SimpleArray<const ON_Geometry*> geom( countCylnds );
-	  for( int i = 0; i < countCylnds; i++ ) 
-	  {
+	ON_SimpleArray<const ON_Geometry*> geom( countCylnds );
+	for( int i = 0; i < countCylnds; i++ ) 
+	{
 		const ON_Geometry* geo = objects[cylinders[i]]->Geometry();
 		if( 0 == geo )
 		{
-		  return failure;
+			return failure;
 		}
 		geom.Append( geo );
-	  }
+	}
 
-	  /**********************************************************/
-	  /*GET BOUNDING BOX OF THE THREE PARTS OF ORIGINAL CYLINDER*/
-	  /**********************************************************/
-	  ON_BoundingBox bbox;
-	  for(int i = 0; i < countCylnds; i++ )
-	  {
+	/********************************************************************/
+	/*GET SEPARATED BOUNDING BOX OF THE THREE PARTS OF ORIGINAL CYLINDER*/
+	/********************************************************************/
+	ON_BoundingBox bbox;
+	for(int i = 0; i < countCylnds; i++ )
+	{
 		geom[i]->GetBoundingBox( bbox, bbox.IsValid() );
-	  }
-	 
-	  ON_3dPoint base_point = bbox.Center();
-	  ON_SimpleArray<ON_MassProperties> MassProp;
-	  MassProp.Reserve( geom.Count() );
-	  ON_3dPoint maxPoint[3];
-	  maxPoint[0].Zero();
-	  maxPoint[1].Zero();
-	  maxPoint[2].Zero();
+	}
 
-	  for(int i = 0; i < geom.Count(); i++ )
-	  {
+	ON_3dPoint base_point = bbox.Center();
+	ON_SimpleArray<ON_MassProperties> MassProp;
+	MassProp.Reserve(geom.Count());
+	ON_3dPoint maxPoint[3];
+	maxPoint[0].Zero();
+	maxPoint[1].Zero();
+	maxPoint[2].Zero();
+
+	for(int i = 0; i < geom.Count(); i++ )
+	{
 		ON_MassProperties* mp = &MassProp.AppendNew();	
 		const ON_Brep* brep = ON_Brep::Cast(geom[i]);
-		if( brep )
+		if(brep)
 		{
-		  brep->VolumeMassProperties( *mp, true, true, false, false, base_point );
-		  maxPoint[i] = MassProp.At(i)->Centroid();
+			brep->VolumeMassProperties(*mp, true, true, false, false, base_point);
+			maxPoint[i] = MassProp.At(i)->Centroid();
 		}
-	  }
-	  /****************************/
-	  /*BUBBLE SORT IMPLEMENTATION*/
-	  /****************************/
-	  int intTmp = 0;
-	  ON_3dPoint tmp;
-	  tmp.Zero();
-	  for(int alto = 2; alto > 0; --alto )
-	  {
+	}
+	/****************************/
+	/*BUBBLE SORT IMPLEMENTATION*/
+	/****************************/
+	int intTmp = 0;
+	ON_3dPoint tmp;
+	tmp.Zero();
+	for(int alto = 2; alto > 0; --alto )
+	{
 		for (int i=0; i<alto; i++)
 		{
-		   if (maxPoint[i].z < maxPoint[i+1].z) /* SOSTITUIRE ">" CON "<" PER AVERE UN ORDINAMENTO DECRESCENTE */
-		   { 
-			 tmp = maxPoint[i]; 
-			 maxPoint[i] = maxPoint[i+1]; 
-			 maxPoint[i+1] = tmp;
-			 intTmp = cylinders[i]; 
-			 cylinders[i] = cylinders[i+1]; 
-			 cylinders[i+1] = intTmp;
-		   }
+			if (maxPoint[i].z < maxPoint[i+1].z) /* SOSTITUIRE ">" CON "<" PER AVERE UN ORDINAMENTO DECRESCENTE */
+			{ 
+				tmp = maxPoint[i]; 
+				maxPoint[i] = maxPoint[i+1]; 
+				maxPoint[i+1] = tmp;
+				intTmp = cylinders[i]; 
+				cylinders[i] = cylinders[i+1]; 
+				cylinders[i+1] = intTmp;
+			}
 		}	
-	  }
+	}
 
-	  /****************/
-	  /*FIND THE LAYER*/
-	  /****************/
-	  int Cyl_layer_index[3] = {context.m_doc.m_layer_table.FindLayer(L"FISSO"), 
-								context.m_doc.m_layer_table.FindLayer(L"MATRICE"), 
-								context.m_doc.m_layer_table.FindLayer(L"FONDELLO")};
+	/****************/
+	/*FIND THE LAYER*/
+	/****************/
+	int Cyl_layer_index[3] = {context.m_doc.m_layer_table.FindLayer(L"FISSO"), 
+							  context.m_doc.m_layer_table.FindLayer(L"MATRICE"), 
+							  context.m_doc.m_layer_table.FindLayer(L"FONDELLO")};
 
 
-	  /*********************************************************************/
-	  /*PUTTING THE THREE PARTS OF THE ORIGINAL CYLINDER INTO RELATED LAYER*/
-	  /*********************************************************************/
-	  for(int i = 0; i < 3; i++)
-	  {
+	/*********************************************************************/
+	/*PUTTING THE THREE PARTS OF THE ORIGINAL CYLINDER INTO RELATED LAYER*/
+	/*********************************************************************/
+	for(int i = 0; i < 3; i++)
+	{
 		CRhinoObjectAttributes atts( objects[ cylinders[i] ]->Attributes() );
 		atts.m_layer_index = Cyl_layer_index[i];
 		CRhinoObjRef ref(objects[ cylinders[i] ]);
@@ -3600,13 +3596,10 @@ CRhinoCommand::result CCommandcatturaPV::RunCommand( const CRhinoCommandContext&
 		  currentLayer.SetVisible(false);
 		  layer_table.ModifyLayer(currentLayer, i);
 	  }
-
 	}
 	context.m_doc.Redraw();
   }
-
 	return CRhinoCommand::success;
-
 }
 
 //
@@ -4958,9 +4951,10 @@ CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandConte
 			//kk2.z*=8;
 			ON_3dPoint kk3 (kk);
 			//ON_3dVector tr(10,0,0);
-			ON_Xform xform;
+			ON_Xform xform, xform2;
 			//xform.Translation(kk2);
 			xform.Translation(14,14,4);
+			
 			
 			kk3.Transform(xform);
 			
@@ -4970,6 +4964,8 @@ CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandConte
 			//double altezza = 6;
 			//ON_Plane pl (ON_zx_plane);
 			ON_Plane pl (kk1,kk) ;
+			xform2.PlanarProjection(pl);
+			
 			
 			
 			
@@ -4980,12 +4976,68 @@ CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandConte
 			const CRhinoObjRef& objref = objN;
 						if( first_sn == next_sn )
 				return CRhinoCommand::nothing;
-			  else
-			  {
-				  ON_wString obj_name = L"MARCATURA";
-				  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
-			  }
+						else {
+								for(first_sn; first_sn != next_sn; first_sn++)
+										  {
+											  ON_wString obj_name = L"MARCATURA";
+											  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
+										  }
+							}
 			//objN->Select(true);
+			
+			//objN->Geometry()->Translate(kk2);CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
+	  
+	  ON_SimpleArray<CRhinoObject*> objectsMarcatura;
+	   /****************/
+	  /*FIND THE LAYER*/
+	  /****************/
+	  int layer_marcatura_index = context.m_doc.m_layer_table.FindLayer(L"pv");
+	  ////
+
+
+	  ON_SimpleArray<CRhinoObject*> oggettiMarcatura;
+	  
+	  oggettiMarcatura.Empty();
+	 
+	  int LinesCount = context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"pv")],oggettiMarcatura);
+	  
+	  
+	 
+		
+		///////////////////////////////////////////////////////////////////
+	  
+	  
+	  for (int i = 0; i < LinesCount; i++ )
+			{
+				if  (
+					(!oggettiMarcatura[i]->Attributes().m_name.Compare("MARCATURA"))
+					)
+						{
+							context.m_doc.TransformObject( oggettiMarcatura[i], xform2, true, true, true );
+							context.m_doc.Redraw();
+							
+							
+						}
+			}
+	  ON_SimpleArray<CRhinoObject*> oggettiMarcatura2; // per la seconda traslazione
+	  oggettiMarcatura2.Empty();
+	  int LinesCount2 = context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"pv")],oggettiMarcatura2);
+	  
+	  for (int j = 0; j < LinesCount2; j++ )
+			{
+				if  (
+					(!oggettiMarcatura2[j]->Attributes().m_name.Compare("MARCATURA"))
+					)
+						{
+							
+							context.m_doc.TransformObject( oggettiMarcatura2[j], xform, true, true, true );
+							context.m_doc.Redraw();
+							
+						}
+			}
+			//context.m_doc.TransformObject( objN, xform2, true, true, true );
+			//context.m_doc.TransformObject( objN, xform, true, true, true );
+			//context.m_doc.Redraw();
 			//objref.t
 
 			/*if (AddAnnotationText(context.m_doc,kk3,lullu,altezza,carattere,1,pl))

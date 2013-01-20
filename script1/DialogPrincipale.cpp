@@ -335,7 +335,7 @@ void DialogPrincipale::OnBnClickedButton2()
 	RhinoApp().RunScript( L"! _GenUgello", 0);
 	RhinoApp().RunScript( L"! _GenSpineCentraggio", 0);
 	RhinoApp().RunScript( L"! _BeginMarcatura", 0);
-	RhinoApp().RunScript( L"_-TextObject GroupOutput=No FontName=McSoft_Font-1 Italic=No Bold=No Height=6 Output=Curves Monti 0,0,0");
+	RhinoApp().RunScript( L"_-TextObject GroupOutput=No FontName=McSoft_Font-1 Italic=No Bold=No Height=6 Output=Curves AllowOpenCurves=Yes Monti 0,0,0");
 	RhinoApp().RunScript( L"! _EndMarcatura", 0);
 
 }
@@ -384,6 +384,7 @@ void DialogPrincipale::OnBnClickedButton5()
 void DialogPrincipale::OnBnClickedButton6()
 {
 	RhinoApp().RunScript( L"!_TrimMatrix", 0 ); 
+	RhinoApp().RunScript( L"! _AssegnaOggettiLayer", 0);
 	//RhinoApp().RunScript(L"_Trim");
 }
 
@@ -392,7 +393,7 @@ void DialogPrincipale::OnBnClickedButton8()
 	GetDlgItem(IDC_BUTTON2)->EnableWindow(FALSE);
 	UpdateData(true);
 	RhinoApp().RunScript( L"! _TrimCylinder", 0);
-	RhinoApp().RunScript( L"! _AssegnaOggettiLayer", 0);
+	
 	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
 }
 
