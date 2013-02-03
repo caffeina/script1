@@ -128,4 +128,7 @@ public:
 	CString LayerPV;
 public:
 	afx_msg void OnEnChangeEdit1();
+public:
+	// nome del tacchificio specificato su interfaccia
+	CString NomeTacchificio;
 };

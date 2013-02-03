@@ -4946,31 +4946,16 @@ CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandConte
 			ON_3dPoint kk(puntoAppoggio1);
 			ON_3dPoint kk1(puntoAppoggio2);
 			ON_3dVector kk2 = kk1 - kk;
-			//double dio = kk2.LengthAndUnitize();
-			//kk2.x*=8;
-			//kk2.z*=8;
 			ON_3dPoint kk3 (kk);
-			//ON_3dVector tr(10,0,0);
+			
 			ON_Xform xform, xform2;
-			//xform.Translation(kk2);
 			xform.Translation(14,14,4);
-			
-			
 			kk3.Transform(xform);
-			
-			//ON_3dPoint point0
-			//ON_wString lullu(L"Monti");
-			//ON_wString carattere(L"McSoft_Font-1");
-			//double altezza = 6;
-			//ON_Plane pl (ON_zx_plane);
+
 			ON_Plane pl (kk1,kk) ;
 			xform2.PlanarProjection(pl);
 			
-			
-			
-			
-			
-			unsigned int first_sn = OggettoMarcatura + 1;
+			unsigned int first_sn = OggettoMarcatura + 1; // non lo so perche' ma il primo oggetto non va bene.
 			unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
 			const CRhinoObject* objN = context.m_doc.LookupObjectByRuntimeSerialNumber( first_sn );
 			const CRhinoObjRef& objref = objN;
@@ -4983,17 +4968,13 @@ CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandConte
 											  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
 										  }
 							}
-			//objN->Select(true);
 			
-			//objN->Geometry()->Translate(kk2);CRhinoLayerTable& layer_table = context.m_doc.m_layer_table;
 	  
 	  ON_SimpleArray<CRhinoObject*> objectsMarcatura;
 	   /****************/
 	  /*FIND THE LAYER*/
 	  /****************/
 	  int layer_marcatura_index = context.m_doc.m_layer_table.FindLayer(L"pv");
-	  ////
-
 
 	  ON_SimpleArray<CRhinoObject*> oggettiMarcatura;
 	  
@@ -5035,15 +5016,9 @@ CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandConte
 							
 						}
 			}
-			//context.m_doc.TransformObject( objN, xform2, true, true, true );
-			//context.m_doc.TransformObject( objN, xform, true, true, true );
-			//context.m_doc.Redraw();
-			//objref.t
+			
 
-			/*if (AddAnnotationText(context.m_doc,kk3,lullu,altezza,carattere,1,pl))
-			{
-				context.m_doc.Redraw();
-			}*/
+
 			/*ON_wString lullu2(L"12345");
 			xform.Translation(14,4,4);
 			ON_3dPoint kk4 (kk);

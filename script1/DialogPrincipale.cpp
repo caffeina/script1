@@ -32,6 +32,7 @@ DialogPrincipale::DialogPrincipale(CWnd* pParent)
 	, FilletDx(_T("6"))
 	, FilletSx(_T("13"))
 	, LayerPV(_T("pv"))
+	, NomeTacchificio(_T("Monti"))
 {
 }
 
@@ -68,6 +69,7 @@ void DialogPrincipale::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT10, FilletDx);
 	DDX_Text(pDX, IDC_EDIT11, FilletSx);
 	DDX_Text(pDX, IDC_EDIT1, LayerPV);
+	DDX_Text(pDX, IDC_EDIT13, NomeTacchificio);
 }
 
 
@@ -323,6 +325,9 @@ void DialogPrincipale::OnEnChangeRichedit21()
 	// TODO:  Aggiungere qui il codice per la gestione della notifica del controllo.
 }
 
+Cscript1PlugIn& plugin = script1PlugIn();
+
+ 
 void DialogPrincipale::OnBnClickedButton2()
 {
 	GetDlgItem(IDC_BUTTON8)->EnableWindow(TRUE);
@@ -335,8 +340,18 @@ void DialogPrincipale::OnBnClickedButton2()
 	RhinoApp().RunScript( L"! _GenUgello", 0);
 	RhinoApp().RunScript( L"! _GenSpineCentraggio", 0);
 	RhinoApp().RunScript( L"! _BeginMarcatura", 0);
-	RhinoApp().RunScript( L"_-TextObject GroupOutput=No FontName=McSoft_Font-1 Italic=No Bold=No Height=6 Output=Curves AllowOpenCurves=Yes Monti 0,0,0");
+	//const wchar_t* provashell = L"_-TextObject GroupOutput=No FontName=Arial Italic=No Bold=No Height=6 Output=Curves AllowOpenCurves=Yes Monti 0,0,0";
+	ON_wString Nameshell;
+	Nameshell.Format( L"_-TextObject GroupOutput=No FontName=Arial Italic=No Bold=No Height=6 Output=Curves AllowOpenCurves=Yes %s 0,0,0",plugin.m_dialog->NomeTacchificio); 
+	RhinoApp().RunScript(Nameshell);
 	RhinoApp().RunScript( L"! _EndMarcatura", 0);
+	//RhinoApp().Print( L"LAYER \"%s\" DOES NOT EXIST.\n", plugin.m_dialog->LayerPV );
+	RhinoApp().Print( L"! _GenUgello");
+
+	/*RhinoApp().RunScript( L"! _BeginMarcatura", 0);
+	RhinoApp().RunScript( L"_-TextObject GroupOutput=No FontName=Arial Italic=No Bold=No Height=6 Output=Curves AllowOpenCurves=Yes |12345 10,0,0");
+	RhinoApp().RunScript( L"! _EndMarcatura", 0);*/
+	//McSoft_Font-1
 
 }
 
