@@ -33,6 +33,14 @@ DialogPrincipale::DialogPrincipale(CWnd* pParent)
 	, FilletSx(_T("13"))
 	, LayerPV(_T("pv"))
 	, NomeTacchificio(_T("Monti"))
+	, mmTacchificio(_T("6"))
+	, numeroArticolo(_T("12345"))
+	, mmnumeroArticolo(_T("6"))
+	, codiceCliente(_T("ClienteCOD"))
+	, mmcodiceCliente(_T("5"))
+	, taglia(_T("00"))
+	, mmtaglia(_T("8"))
+	, tipologiafont(_T("Arial"))
 {
 }
 
@@ -70,6 +78,14 @@ void DialogPrincipale::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT11, FilletSx);
 	DDX_Text(pDX, IDC_EDIT1, LayerPV);
 	DDX_Text(pDX, IDC_EDIT13, NomeTacchificio);
+	DDX_Text(pDX, IDC_EDIT17, mmTacchificio);
+	DDX_Text(pDX, IDC_EDIT14, numeroArticolo);
+	DDX_Text(pDX, IDC_EDIT18, mmnumeroArticolo);
+	DDX_Text(pDX, IDC_EDIT15, codiceCliente);
+	DDX_Text(pDX, IDC_EDIT20, mmcodiceCliente);
+	DDX_Text(pDX, IDC_EDIT16, taglia);
+	DDX_Text(pDX, IDC_EDIT19, mmtaglia);
+	DDX_Text(pDX, IDC_EDIT21, tipologiafont);
 }
 
 
@@ -341,9 +357,21 @@ void DialogPrincipale::OnBnClickedButton2()
 	RhinoApp().RunScript( L"! _GenSpineCentraggio", 0);
 	RhinoApp().RunScript( L"! _BeginMarcatura", 0);
 	//const wchar_t* provashell = L"_-TextObject GroupOutput=No FontName=Arial Italic=No Bold=No Height=6 Output=Curves AllowOpenCurves=Yes Monti 0,0,0";
-	ON_wString Nameshell;
-	Nameshell.Format( L"_-TextObject GroupOutput=No FontName=Arial Italic=No Bold=No Height=6 Output=Curves AllowOpenCurves=Yes %s 0,0,0",plugin.m_dialog->NomeTacchificio); 
+	ON_wString Nameshell,Nameshell1,Nameshell2,Nameshell3,Nameshell4;
+	Nameshell.Format( L"_-TextObject GroupOutput=No FontName=%s Italic=No Bold=No Height=%s Output=Curves AllowOpenCurves=Yes %s 0,0,0",plugin.m_dialog->tipologiafont,plugin.m_dialog->mmTacchificio,plugin.m_dialog->NomeTacchificio); 
+	Nameshell1.Format( L"_-TextObject GroupOutput=No FontName=%s Italic=No Bold=No Height=%s Output=Curves AllowOpenCurves=Yes _%s 10,-7,0",plugin.m_dialog->tipologiafont,plugin.m_dialog->mmnumeroArticolo,plugin.m_dialog->numeroArticolo);
+	Nameshell2.Format( L"_-TextObject GroupOutput=No FontName=%s Italic=No Bold=No Height=%s Output=Curves AllowOpenCurves=Yes _%s 3,-20,0",plugin.m_dialog->tipologiafont,plugin.m_dialog->mmtaglia,plugin.m_dialog->taglia);
+	Nameshell3.Format( L"_-TextObject GroupOutput=No FontName=%s Italic=No Bold=No Height=%s Output=Curves AllowOpenCurves=Yes _%s 0,-30,0",plugin.m_dialog->tipologiafont,plugin.m_dialog->mmcodiceCliente,plugin.m_dialog->codiceCliente);
 	RhinoApp().RunScript(Nameshell);
+	RhinoApp().RunScript( L"! _EndMarcatura", 0);
+	RhinoApp().RunScript( L"! _BeginMarcatura", 0);
+	RhinoApp().RunScript(Nameshell1);
+	RhinoApp().RunScript( L"! _EndMarcatura", 0);
+	RhinoApp().RunScript( L"! _BeginMarcatura", 0);
+	RhinoApp().RunScript(Nameshell2);
+	RhinoApp().RunScript( L"! _EndMarcatura", 0);
+	RhinoApp().RunScript( L"! _BeginMarcatura", 0);
+	RhinoApp().RunScript(Nameshell3);
 	RhinoApp().RunScript( L"! _EndMarcatura", 0);
 	//RhinoApp().Print( L"LAYER \"%s\" DOES NOT EXIST.\n", plugin.m_dialog->LayerPV );
 	RhinoApp().Print( L"! _GenUgello");

@@ -32,6 +32,7 @@ ON_3dPoint	puntoAppoggio2;
 ON_Plane planeAppoggio;
 unsigned int OggettoMarcatura;
 
+
 /********************UTLITY*************************/
 /*
 Description:
@@ -4952,8 +4953,10 @@ CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandConte
 			xform.Translation(14,14,4);
 			kk3.Transform(xform);
 
-			ON_Plane pl (kk1,kk) ;
-			xform2.PlanarProjection(pl);
+			int countMarcatura=0;
+			ON_Plane pl (kk1,kk);
+			if (countMarcatura==0) xform2.PlanarProjection(pl);
+			countMarcatura++;
 			
 			unsigned int first_sn = OggettoMarcatura + 1; // non lo so perche' ma il primo oggetto non va bene.
 			unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
@@ -5013,11 +5016,50 @@ CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandConte
 							
 							context.m_doc.TransformObject( oggettiMarcatura2[j], xform, true, true, true );
 							context.m_doc.Redraw();
-							
+							ON_wString obj_name = L"MARCATURASETTED";
+							//oggettiMarcatura2[j]->Attributes().m_name.Destroy();
+							/*CRhinoObjectAttributes pAttributes = oggettiMarcatura2[j]->Attributes();
+							pAttributes.m_name = L"marcaturaoff";
+							const CRhinoObjRef& objref = oggettiMarcatura2[j];
+							context.m_doc.ModifyObjectAttributes( objref, pAttributes );
+							context.m_doc.Redraw();*/
 						}
 			}
-			
 
+	  ON_SimpleArray<CRhinoObject*> oggettiMarcatura3; // per la seconda traslazione
+	  oggettiMarcatura3.Empty();
+	  int LinesCount3 = context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"pv")],oggettiMarcatura3);
+	  for (int i = 0; i < LinesCount3; i++ )
+			{
+				if(
+					(!oggettiMarcatura3[i]->Attributes().m_name.Compare("MARCATURA")) 
+					)
+						{
+							CRhinoObjectAttributes atts( oggettiMarcatura3[i]->Attributes() );
+							atts.m_name = L"vuoto";  // al fondello
+							CRhinoObjRef ref(oggettiMarcatura3[i]);
+							context.m_doc.ModifyObjectAttributes(ref, atts);
+						}
+	  }
+	  context.m_doc.Redraw();
+	//  ON_3dmObjectAttributes obj_attribs = objN->Attributes();
+
+	///*************************************/
+	///*MODIFY THE ATTRIBUTES OF THE OBJECT*/
+	///*************************************/
+	//obj_attribs.m_name = name;
+	//const CRhinoObjRef& objref = objN;
+	//doc.ModifyObjectAttributes( objref, obj_attribs );
+	//if( bRedraw )
+	//{
+	//	doc.Redraw();
+	//}
+			/*first_sn = OggettoMarcatura + 1;
+			for(first_sn; first_sn != next_sn; first_sn++)
+										  {
+											  ON_wString obj_name = L"MARCATURASET";
+											  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
+										  }*/
 
 			/*ON_wString lullu2(L"12345");
 			xform.Translation(14,4,4);

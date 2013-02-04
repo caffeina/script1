@@ -131,4 +131,20 @@ public:
 public:
 	// nome del tacchificio specificato su interfaccia
 	CString NomeTacchificio;
+public:
+	CString mmTacchificio;
+public:
+	CString numeroArticolo; // iniziare con un underscore o altro carattere altrimenti Rhino nn lo prende nella shell
+public:
+	CString mmnumeroArticolo;
+public:
+	CString codiceCliente;
+public:
+	CString mmcodiceCliente;
+public:
+	CString taglia;
+public:
+	CString mmtaglia;
+public:
+	CString tipologiafont;
 };
