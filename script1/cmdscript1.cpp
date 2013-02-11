@@ -3921,7 +3921,7 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 	OutBreps2.Empty();
 	something_happened = false;
 	tolerance = context.m_doc.AbsoluteTolerance();
-	rc = RhinoBooleanUnion( InBreps, tolerance, &something_happened, OutBreps2);
+	rc = RhinoBooleanUnion(InBreps, tolerance, &something_happened, OutBreps2);
 	if( !rc | !something_happened )
 	{
 		for(int i = 0; i < OutBreps2.Count(); i++ )
@@ -3933,16 +3933,16 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 	}
 	for(int i = 0; i < OutBreps2.Count(); i++ )
 	{
-	ON_Brep* brep   = OutBreps2[i];
-	if( brep )
-	{
-      CRhinoObjectAttributes pAttributes(objects[0]->Attributes());
-	  pAttributes.m_layer_index = layer_indexFONDELLO;
-	  context.m_doc.AddBrepObject( *brep, &pAttributes);
-	  brep = 0;
-	  delete OutBreps2[i];
-	  OutBreps2[i] = 0;
-	}
+		ON_Brep* brep   = OutBreps2[i];
+		if( brep )
+		{
+			CRhinoObjectAttributes pAttributes(objects[0]->Attributes());
+			pAttributes.m_layer_index = layer_indexFONDELLO;
+			context.m_doc.AddBrepObject( *brep, &pAttributes);
+			brep = 0;
+			delete OutBreps2[i];
+			OutBreps2[i] = 0;
+		}
 	}
 	for(int i = 0; i < InBreps.Count(); i++ )
 	{
@@ -3953,7 +3953,7 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 	/**************************/
 	/*RENAME SOME LAYER OBJECT*/
 	/**************************/
-	layer_indexMATRICE  = context.m_doc.m_layer_table.FindLayer(L"MATRICE");
+	layer_indexMATRICE = context.m_doc.m_layer_table.FindLayer(L"MATRICE");
 	objects.Empty();
 	object_count = context.m_doc.LookupObject(context.m_doc.m_layer_table[layer_indexMATRICE], objects);
 	if(!(object_count > 1))
@@ -3976,7 +3976,7 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 		}
 	}
 
-	layer_indexFISSO    = context.m_doc.m_layer_table.FindLayer(L"FISSO");
+	layer_indexFISSO = context.m_doc.m_layer_table.FindLayer(L"FISSO");
 	objects.Empty();
 	object_count = context.m_doc.LookupObject(context.m_doc.m_layer_table[layer_indexFISSO], objects);
 	if(!(object_count > 1))
@@ -4334,9 +4334,9 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 		}
 	}	
 
-	/****************************************************************/
-	/*TRIMMING MATRIX OBJECT AND TACCO OBJECT USING TRIMMATRIX PLANE*/
-	/****************************************************************/
+	/***********************************************/
+	/*TRIMMING MATRIX OBJECT USING TRIMMATRIX PLANE*/
+	/***********************************************/
 	objectsMATRICE.Empty();
 	object_countMATRICE = context.m_doc.LookupObject(context.m_doc.m_layer_table[layer_indexMATRICE], objectsMATRICE);
 	for(int i = 0; i < object_countMATRICE; i++ )
@@ -4573,8 +4573,6 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 			TrimMatrix.Append(objectsMATRICE[i]);
 		}		
 	}
-	//ON_SimpleArray<int> IndexSmalleestArea;
-	//IndexSmalleestArea.Empty();
 	areas.Empty();
 	for(int i = 0; i < TrimMatrix.Count(); i++ )
 	{
@@ -4585,7 +4583,6 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 			if( face->AreaMassProperties(mp, true, false, false, false, 1e-6, 1e-6) )
 			{
 				areas.Append(mp.Area());
-				//IndexSmalleestArea.Append(i);
 			}
 		}
 	}
@@ -4604,6 +4601,186 @@ CRhinoCommand::result CCommandTrimMatrix::RunCommand( const CRhinoCommandContext
 			IndexSmallestArea = i;
 		}	
 	}	
+	/*****************************/
+	/*FLIPPING THE MATRICE OBJECT*/
+	/*****************************/
+	objectsMATRICE.Empty();
+	object_countMATRICE = context.m_doc.LookupObject(context.m_doc.m_layer_table[layer_indexMATRICE], objectsMATRICE);
+	for(int i = 0; i < object_countMATRICE; i++ )
+	{
+		if(!objectsMATRICE[i]->Attributes().m_name.Compare("MATRICE"))
+		{
+			const CRhinoObjRef& ref = objectsMATRICE[i];
+			const ON_Brep* brep = ref.Brep();
+			if(brep)
+			{
+				ON_Brep* DupBrep = brep->Duplicate(); 
+				if(DupBrep)
+				{
+					DupBrep->Flip();
+					CRhinoObjectAttributes pAttributes(objectsMATRICE[i]->Attributes());
+					pAttributes.m_layer_index = layer_indexMATRICE;
+					pAttributes.m_name = L"MATRICE";
+					context.m_doc.AddBrepObject(*DupBrep, &pAttributes);
+					context.m_doc.DeleteObject(ref);
+					context.m_doc.Redraw();
+				}
+			}			
+		}
+	}/*CHIUSURA FOR*/
+
+	objectsMATRICE.Empty();
+	object_countMATRICE = context.m_doc.LookupObject(context.m_doc.m_layer_table[layer_indexMATRICE], objectsMATRICE);
+	ON_SimpleArray<int> TrimMatrixIndeces;
+	ON_SimpleArray<int> MatrixObjsIndeces;
+	InBreps.Empty();
+	objects.Empty();
+	OutBreps.Empty();
+	something_happened = false;
+	tolerance = context.m_doc.AbsoluteTolerance();
+	for(int i = 0; i < object_countMATRICE; i++ )
+	{
+		if(!objectsMATRICE[i]->Attributes().m_name.Compare("MATRICE"))
+		{
+			MatrixObjsIndeces.Append(i);
+		}
+
+		if(!objectsMATRICE[i]->Attributes().m_name.Compare("TRIMMATRIX"))
+		{
+			TrimMatrixIndeces.Append(i);
+			const ON_Brep* brep = ON_Brep::Cast(objectsMATRICE[i]->Geometry());
+			if(brep)
+			{
+				InBreps.Append( brep );
+			}
+		}
+	}/*CHIUSURA FOR*/
+	const ON_Brep* brep = ON_Brep::Cast(objectsMATRICE[MatrixObjsIndeces[1]]->Geometry());
+	if(brep)
+	{
+		InBreps.Append(brep);
+	}
+
+	rc = RhinoBooleanUnion(InBreps, tolerance, &something_happened, OutBreps);
+	if(!rc | !something_happened)
+	{
+		for(int i = 0; i < OutBreps.Count(); i++ )
+		{
+		  delete OutBreps[i];
+		  OutBreps[i] = 0;
+		}
+		return CRhinoCommand::nothing;
+	}
+	for(int i = 0; i < OutBreps.Count(); i++ )
+	{
+		ON_Brep* brep   = OutBreps[i];
+		if( brep )
+		{
+			CRhinoObjectAttributes pAttributes(objectsMATRICE[MatrixObjsIndeces[1]]->Attributes());
+			pAttributes.m_layer_index = layer_indexMATRICE;
+			pAttributes.m_name = L"LEFT_MATRICE";
+			context.m_doc.AddBrepObject(*brep, &pAttributes);
+			brep = 0;
+			delete OutBreps[i];
+			OutBreps[i] = 0;
+		}
+	}
+	context.m_doc.DeleteObject(objectsMATRICE[MatrixObjsIndeces[1]]);	
+	context.m_doc.Redraw();
+
+	/********************************/
+	/*FLIPPING THE TRIMMATRIX PLANES*/
+	/********************************/
+	objectsMATRICE.Empty();
+	object_countMATRICE = context.m_doc.LookupObject(context.m_doc.m_layer_table[layer_indexMATRICE], objectsMATRICE);
+	for(int i = 0; i < object_countMATRICE; i++ )
+	{
+		if(!objectsMATRICE[i]->Attributes().m_name.Compare("TRIMMATRIX"))
+		{
+			const CRhinoObjRef& ref = objectsMATRICE[i];
+			const ON_Brep* brep = ref.Brep();
+			if(brep)
+			{
+				ON_Brep* DupBrep = brep->Duplicate(); 
+				if(DupBrep)
+				{
+					DupBrep->Flip();
+					CRhinoObjectAttributes pAttributes(objectsMATRICE[i]->Attributes());
+					pAttributes.m_layer_index = layer_indexMATRICE;
+					pAttributes.m_name = L"TRIMMATRIX";
+					context.m_doc.AddBrepObject(*DupBrep, &pAttributes);
+					context.m_doc.DeleteObject(ref);
+					context.m_doc.Redraw();
+				}
+			}			
+		}
+	}/*CHIUSURA FOR*/
+
+	objectsMATRICE.Empty();
+	object_countMATRICE = context.m_doc.LookupObject(context.m_doc.m_layer_table[layer_indexMATRICE], objectsMATRICE);
+	TrimMatrixIndeces.Empty();
+	MatrixObjsIndeces.Empty();
+	InBreps.Empty();
+	objects.Empty();
+	OutBreps.Empty();
+	something_happened = false;
+	tolerance = context.m_doc.AbsoluteTolerance();
+	for(int i = 0; i < object_countMATRICE; i++ )
+	{
+		if(!objectsMATRICE[i]->Attributes().m_name.Compare("MATRICE"))
+		{
+			MatrixObjsIndeces.Append(i);
+		}
+
+		if(!objectsMATRICE[i]->Attributes().m_name.Compare("TRIMMATRIX"))
+		{
+			TrimMatrixIndeces.Append(i);
+			const ON_Brep* brep = ON_Brep::Cast(objectsMATRICE[i]->Geometry());
+			if(brep)
+			{
+				InBreps.Append( brep );
+			}
+		}
+	}/*CHIUSURA FOR*/
+	brep = ON_Brep::Cast(objectsMATRICE[MatrixObjsIndeces[0]]->Geometry());
+	if(brep)
+	{
+		InBreps.Append(brep);
+	}
+
+	rc = RhinoBooleanUnion(InBreps, tolerance, &something_happened, OutBreps);
+	if(!rc | !something_happened)
+	{
+		for(int i = 0; i < OutBreps.Count(); i++ )
+		{
+		  delete OutBreps[i];
+		  OutBreps[i] = 0;
+		}
+		return CRhinoCommand::nothing;
+	}
+	for(int i = 0; i < OutBreps.Count(); i++ )
+	{
+		ON_Brep* brep   = OutBreps[i];
+		if( brep )
+		{
+			CRhinoObjectAttributes pAttributes(objectsMATRICE[MatrixObjsIndeces[1]]->Attributes());
+			pAttributes.m_layer_index = layer_indexMATRICE;
+			pAttributes.m_name = L"RIGHT_MATRICE";
+			context.m_doc.AddBrepObject(*brep, &pAttributes);
+			brep = 0;
+			delete OutBreps[i];
+			OutBreps[i] = 0;
+		}
+	}
+	for(int i = 0; i < MatrixObjsIndeces.Count(); i++)
+	{
+		context.m_doc.DeleteObject(objectsMATRICE[MatrixObjsIndeces[i]]);
+	}
+	for(int i = 0; i < TrimMatrixIndeces.Count(); i++)
+	{
+		context.m_doc.DeleteObject(objectsMATRICE[TrimMatrixIndeces[i]]);
+	}
+	context.m_doc.Redraw();
 	return CRhinoCommand::success;
 }
 
