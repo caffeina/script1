@@ -1986,7 +1986,84 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			context.m_doc.Redraw();
 			// end aniello accendere tutti i layer
 
+			////BEGIN RINFORZO FONDELLO ALLUMINIO
 			
+		//UpdateData (TRUE);
+			// plugin.m_dialog->StatusRadio8_Fondello_di_alluminio m_dialog.
+		//GetDlgItem(IDC_EDIT2)->EnableWindow(FALSE);
+		if(!plugin.m_dialog->StatusRadio8_Fondello_di_alluminio )
+		{
+					ON_3dPoint center_pointFF( 0.0, 0.0, 0.0 );
+				double radiusFF = 45;
+				int __countFF = plugin.m_dialog->m_comboAltTacco.GetCount();
+				
+				int nIndex1FF = plugin.m_dialog->AltezzaFondelloControllo.GetCurSel();
+				CString strCBText1FF;
+				plugin.m_dialog->AltezzaFondelloControllo.GetLBText( nIndex1FF, strCBText1FF);
+				int altfondelloFF = _wtoi(strCBText1FF);
+				//altfondelloFF = altfondelloFF - 35;
+				if (altfondelloFF>20) return CRhinoCommand::success;
+
+
+				int nIndexFF = plugin.m_dialog->m_comboAltTacco.GetCurSel();
+				CString strCBTextFF;
+				plugin.m_dialog->m_comboAltTacco.GetLBText( nIndexFF, strCBTextFF);
+				//int heightFF = _wtoi(strCBTextFF);
+				int heightFF = 35 - altfondelloFF ;
+
+				ON_3dPoint height_pointFF( 0, 0.0, heightFF);
+				ON_3dVector zaxisFF = height_pointFF - center_pointFF;
+				ON_Plane planeCirFF( center_pointFF, zaxisFF );
+
+				/********************************/
+				/*ADD CIRCLE FOR CYLINDER'S BASE*/
+				/********************************/
+				ON_Circle circleFF( planeCirFF, radiusFF );
+
+				/**************/
+				/*ADD CYLINDER*/
+				/**************/
+				ON_Cylinder cylinderFF( circleFF, zaxisFF.Length() );
+				ON_Brep* brepFF = ON_BrepCylinder( cylinderFF, TRUE, TRUE );
+				unsigned int first_SN;
+				unsigned int next_SN;
+				if( brepFF )
+				{
+					first_SN = CRhinoObject::NextRuntimeObjectSerialNumber();
+
+					/********************/
+					/*TRANSLATE CYLINDER*/
+					/********************/
+					
+
+
+					ON_wString obj_nameCylFF = L"rinforzofondello";
+									
+					
+					brepFF->Translate(ON_3dVector( 0.0, 0.0, -35));
+					CRhinoBrepObject* cylinder_objectFF = new CRhinoBrepObject();
+					cylinder_objectFF->SetBrep( brepFF );
+					if( context.m_doc.AddObject(cylinder_objectFF) )
+					{
+						context.m_doc.Redraw();
+						next_SN = CRhinoObject::NextRuntimeObjectSerialNumber();
+						if( first_SN == next_SN )
+						{
+							return CRhinoCommand::nothing;
+						}
+						else
+						{
+							SetNametoObject(context.m_doc,first_SN,obj_nameCylFF,true);			  
+						}
+					}
+					else
+					{
+						delete cylinder_objectFF;
+					}
+
+				}
+		}
+			//// END RINFORZO FONDELLO ALLUMINIO
 
 
   return CRhinoCommand::success;
