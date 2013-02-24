@@ -1529,8 +1529,18 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			/****************************/
 			/*INIZIO SPINE DI CENTRAGGIO*/ 
 			/****************************/
-			ON_3dPoint PT_SPINA_1_1(50.0,0,0);
-			ON_3dPoint PT_SPINA_2_1(-50.0,0,0);
+			ON_3dPoint PT_SPINA_1_1(0,0,0); //(50.0,0,0)
+			ON_3dPoint PT_SPINA_2_1(0,0,0); //(-50.0,0,0)
+			if(!plugin.m_dialog->StatusRadio8_Fondello_di_alluminio )
+			{
+				PT_SPINA_1_1.x = 40;
+				PT_SPINA_2_1.x = -40;
+			}
+			else
+			{
+				PT_SPINA_1_1.x = 50;
+				PT_SPINA_2_1.x = -50;
+			}
 			ON_3dPoint PT_SPINA_1_2(50.0,0,130);
 			ON_3dPoint PT_SPINA_2_2(-50.0,0,150);
 			
@@ -5338,6 +5348,200 @@ CRhinoCommand::result CCommandEndMarcatura::RunCommand( const CRhinoCommandConte
 
 //
 // END EndMarcatura command
+//
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//
+// BEGIN EndMarcaturaTaglia command
+//
+
+class CCommandEndMarcaturaTaglia : public CRhinoCommand
+{
+public:
+	CCommandEndMarcaturaTaglia() {}
+	~CCommandEndMarcaturaTaglia() {}
+	UUID CommandUUID()
+	{
+		// {471D1A5A-EC7E-4C3B-B726-A07BF13AE8E9}
+		static const GUID EndMarcaturaTagliaCommand_UUID =
+		{ 0x471D1A5A, 0xEC7E, 0x4C3B, { 0xB7, 0x26, 0xA0, 0x7B, 0xF1, 0x3A, 0xE8, 0xE9 } };
+		return EndMarcaturaTagliaCommand_UUID;
+	}
+	const wchar_t* EnglishCommandName() { return L"EndMarcaturaTaglia"; }
+	const wchar_t* LocalCommandName() { return L"EndMarcaturaTaglia"; }
+	CRhinoCommand::result RunCommand( const CRhinoCommandContext& );
+};
+
+// The one and only CCommandEndMarcaturaTaglia object
+static class CCommandEndMarcaturaTaglia theEndMarcaturaTagliaCommand;
+
+CRhinoCommand::result CCommandEndMarcaturaTaglia::RunCommand( const CRhinoCommandContext& context )
+{
+
+	/*************** BEGIN MARCATURA *****************************/
+			ON_3dPoint kk(puntoAppoggio1);
+			ON_3dPoint kk1(puntoAppoggio2);
+			ON_3dVector kk2 = kk1 - kk;
+			ON_3dPoint kk3 (kk);
+			
+			ON_Xform xform, xform2;
+			xform.Translation(14,14,4);
+			
+			kk3.Transform(xform);
+			ON_3dVector centro1(0,0,0);
+			int countMarcatura=0;
+			ON_Plane pl (kk1,kk);
+			
+			ON_3dVector normale (pl.Normal());
+			normale.Unitize();
+			//normale.Reverse();
+			//normale.Rotate(1,0,normale);
+			ON_3dVector normale2(1,0,0);
+			pl.Rotate(200,normale);
+			ON_3dVector asse1 (pl.Xaxis());
+			ON_3dVector asse2 (pl.Yaxis());
+			asse1.Reverse();
+			asse2.Reverse();
+			asse1.Rotate(3.14,normale);
+			asse2.Rotate(3.14,normale);
+			pl.xaxis=asse1;
+			pl.yaxis=asse2;
+			pl.Flip();
+			ON_3dVector ZeroVector;
+			//pl.xaxis=ZeroVector;
+			if (countMarcatura==0) xform2.PlanarProjection(pl);
+			countMarcatura++;
+			
+			
+			
+			unsigned int first_sn = OggettoMarcatura + 1; // non lo so perche' ma il primo oggetto non va bene.
+			unsigned int next_sn = CRhinoObject::NextRuntimeObjectSerialNumber();
+			const CRhinoObject* objN = context.m_doc.LookupObjectByRuntimeSerialNumber( first_sn );
+			const CRhinoObjRef& objref = objN;
+						if( first_sn == next_sn )
+				return CRhinoCommand::nothing;
+						else {
+								for(first_sn; first_sn != next_sn; first_sn++)
+										  {
+											  ON_wString obj_name = L"MARCATURA";
+											  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
+										  }
+							}
+			
+	  
+	  ON_SimpleArray<CRhinoObject*> objectsMarcatura;
+	   /****************/
+	  /*FIND THE LAYER*/
+	  /****************/
+	  int layer_marcatura_index = context.m_doc.m_layer_table.FindLayer(L"pv");
+
+	  ON_SimpleArray<CRhinoObject*> oggettiMarcatura;
+	  
+	  oggettiMarcatura.Empty();
+	 
+	  int LinesCount = context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"pv")],oggettiMarcatura);
+	  
+	  
+	 
+		
+		///////////////////////////////////////////////////////////////////
+	  
+	  
+	  for (int i = 0; i < LinesCount; i++ )
+			{
+				if  (
+					(!oggettiMarcatura[i]->Attributes().m_name.Compare("MARCATURA"))
+					)
+						{
+							context.m_doc.TransformObject( oggettiMarcatura[i], xform2, true, true, true );
+							context.m_doc.Redraw();
+							
+							
+						}
+			}
+	  ON_SimpleArray<CRhinoObject*> oggettiMarcatura2; // per la seconda traslazione
+	  oggettiMarcatura2.Empty();
+	  int LinesCount2 = context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"pv")],oggettiMarcatura2);
+	  
+	  for (int j = 0; j < LinesCount2; j++ )
+			{
+				if  (
+					(!oggettiMarcatura2[j]->Attributes().m_name.Compare("MARCATURA"))
+					)
+						{
+							
+							context.m_doc.TransformObject( oggettiMarcatura2[j], xform, true, true, true );
+							context.m_doc.Redraw();
+							ON_wString obj_name = L"MARCATURASETTED";
+							//oggettiMarcatura2[j]->Attributes().m_name.Destroy();
+							/*CRhinoObjectAttributes pAttributes = oggettiMarcatura2[j]->Attributes();
+							pAttributes.m_name = L"marcaturaoff";
+							const CRhinoObjRef& objref = oggettiMarcatura2[j];
+							context.m_doc.ModifyObjectAttributes( objref, pAttributes );
+							context.m_doc.Redraw();*/
+						}
+			}
+
+	  ON_SimpleArray<CRhinoObject*> oggettiMarcatura3; // per la seconda traslazione
+	  oggettiMarcatura3.Empty();
+	  int LinesCount3 = context.m_doc.LookupObject( context.m_doc.m_layer_table[context.m_doc.m_layer_table.FindLayer(L"pv")],oggettiMarcatura3);
+	  for (int i = 0; i < LinesCount3; i++ )
+			{
+				if(
+					(!oggettiMarcatura3[i]->Attributes().m_name.Compare("MARCATURA")) 
+					)
+						{
+							CRhinoObjectAttributes atts( oggettiMarcatura3[i]->Attributes() );
+							atts.m_name = L"vuoto";  // al fondello
+							CRhinoObjRef ref(oggettiMarcatura3[i]);
+							context.m_doc.ModifyObjectAttributes(ref, atts);
+						}
+	  }
+	  context.m_doc.Redraw();
+	//  ON_3dmObjectAttributes obj_attribs = objN->Attributes();
+
+	///*************************************/
+	///*MODIFY THE ATTRIBUTES OF THE OBJECT*/
+	///*************************************/
+	//obj_attribs.m_name = name;
+	//const CRhinoObjRef& objref = objN;
+	//doc.ModifyObjectAttributes( objref, obj_attribs );
+	//if( bRedraw )
+	//{
+	//	doc.Redraw();
+	//}
+			/*first_sn = OggettoMarcatura + 1;
+			for(first_sn; first_sn != next_sn; first_sn++)
+										  {
+											  ON_wString obj_name = L"MARCATURASET";
+											  SetNametoObject(context.m_doc,first_sn,obj_name,true);			  
+										  }*/
+
+			/*ON_wString lullu2(L"12345");
+			xform.Translation(14,4,4);
+			ON_3dPoint kk4 (kk);
+			kk4.Transform(xform);
+			if (AddAnnotationText(context.m_doc,kk4,lullu2,altezza,carattere,1,pl))
+			{
+				context.m_doc.Redraw();
+			}
+			ON_wString lullu3(L"ClientCod");
+			xform.Translation(14,-8,4);
+			ON_3dPoint kk5 (kk);
+			kk5.Transform(xform);
+			if (AddAnnotationText(context.m_doc,kk5,lullu3,altezza,carattere,1,pl))
+			{
+				context.m_doc.Redraw();
+			}*/
+	return CRhinoCommand::success;
+}
+
+//
+// END EndMarcaturaTaglia command
 //
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////

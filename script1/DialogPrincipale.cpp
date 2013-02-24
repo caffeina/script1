@@ -19,7 +19,7 @@ DialogPrincipale::DialogPrincipale(CWnd* pParent)
 	, StatusRadio1_Centrale(0)
 	, StatusRadio3_Iniezione_Centrale(0)
 	, StatusRadio7_Fondello_di_ferro(0)
-	, ValIniezioneDisassamento(_T("+12"))
+	, ValIniezioneDisassamento(_T("-12"))
 	, ValoreAltezzaFondello(_T("20"))
 	, ValoreTraslazione(_T(""))
 	, ValoreRotazione(_T(""))
@@ -149,7 +149,7 @@ void DialogPrincipale::OnBnClickedCancel()
 
 void DialogPrincipale::OnCbnSelchangeCombo1()
 {
-	UpdateData(true);
+	// x conotrollare UpdateData(true);
 	// TODO: aggiungere qui il codice per la gestione della notifica del controllo.
 }
 
@@ -312,7 +312,7 @@ void DialogPrincipale::OnBnClickedCheck1()
 	StatusRadio2_Dissasata = 0;
 	StatusRadio1_Centrale = -1;
 	//CheckRadioButton(IDC_RADIO2,IDC_RADIO2,IDC_RADIO2);
-	UpdateData(FALSE);
+	//UpdateData(FALSE);  commentato per baco cancellazione altezza stampo
 	}
 	else {
 	GetDlgItem(IDC_RADIO1)->EnableWindow(FALSE);
@@ -322,7 +322,7 @@ void DialogPrincipale::OnBnClickedCheck1()
 	GetDlgItem(IDC_RADIO7)->EnableWindow(FALSE);
 	GetDlgItem(IDC_RADIO8)->EnableWindow(FALSE);
 	//GetDlgItem(IDC_COMBO1)->EnableWindow(FALSE);
-	UpdateData(FALSE);
+	//UpdateData(FALSE); commentato per baco cancellazione altezza stampo
 	}
 
 	
@@ -369,7 +369,9 @@ void DialogPrincipale::OnBnClickedButton2()
 	RhinoApp().RunScript( L"! _EndMarcatura", 0);
 	RhinoApp().RunScript( L"! _BeginMarcatura", 0);
 	RhinoApp().RunScript(Nameshell2);
-	RhinoApp().RunScript( L"! _EndMarcatura", 0);
+	RhinoApp().RunScript( L"! EndMarcaturaTaglia", 0);
+	/*RhinoApp().RunScript( L"_SelLast", 0 );
+	RhinoApp().RunScript( L"_-Rotate 3,-20,0 90", 0 );*/
 	RhinoApp().RunScript( L"! _BeginMarcatura", 0);
 	RhinoApp().RunScript(Nameshell3);
 	RhinoApp().RunScript( L"! _EndMarcatura", 0);
