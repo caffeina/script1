@@ -682,15 +682,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		context.m_doc.Redraw();
 	}/*CHIUSURA ELSE LAYER_INDEX < 0 */		
 
-	//CRhinoGetObject gc;
-	//gc.SetCommandPrompt( L"SELECT LINE TO EXTEND" );
-	//gc.SetGeometryFilter( CRhinoGetObject::curve_object );
-	//gc.GetObjects( 1, 1 );
-	//if(!(gc.CommandResult() == CRhinoCommand::success))
-	//{
-	//	return CRhinoCommand::nothing;
-	//}
-	//const CRhinoObjRef& objref = gc.Object(0);
+	
 	/************************************************************/
 	ON_SimpleArray<CRhinoObject*> objectsPV;
 	int object_countPV;
@@ -984,19 +976,39 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	const ON_Curve* pC = ON_Curve::Cast( objref.Geometry() );
 	ON_Curve* crv0 = pC->DuplicateCurve();
 
+/****************************************************/
+	/*POSITIVE PV LINE' DIRECTION : POSITIVE X DIRECTION*/
+	/****************************************************/
+	ON_3dPoint Pt_s;
+	ON_3dPoint Pt_e;
+	double extensionDX = 0.0;
+	double extensionSX = 0.0;
+	if(crv0->PointAtStart().z < crv0->PointAtEnd().z)
+	{
+		Pt_s = crv0->PointAtStart();
+		Pt_e = crv0->PointAtEnd();
+	    extensionDX = _wtof(plugin.m_dialog->EstLineaDx);
+	    extensionSX = _wtof(plugin.m_dialog->EstLineaSx);
+	}
+	else
+	{
+		Pt_e = crv0->PointAtStart();
+		Pt_s = crv0->PointAtEnd();
+	    extensionSX = _wtof(plugin.m_dialog->EstLineaDx);
+	    extensionDX = _wtof(plugin.m_dialog->EstLineaSx);
+	}
+
 	/***************************/
 	/*RECORDING ORIGINAL PVLINE*/
 	/***************************/
-	CurvaPV.SetStartPoint(crv0->PointAtStart());
-	CurvaPV.SetEndPoint(crv0->PointAtEnd());
+	CurvaPV.SetStartPoint(Pt_s);
+	CurvaPV.SetEndPoint(Pt_e);
 
-	bool rc0 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 1, _wtof(plugin.m_dialog->EstLineaDx));
-	bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0,_wtof(plugin.m_dialog->EstLineaSx) );
+	bool rc0 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 1, extensionDX);
+	bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0, extensionSX);
 	context.m_doc.ReplaceObject(objref, *crv0 );
 	context.m_doc.Redraw();
 
-	ON_3dPoint p0 = crv0->PointAtStart();
-	ON_3dPoint p1 = crv0->PointAtEnd();
 
 	double alphaAngle = _wtof(plugin.m_dialog->AngoloAlphaDx);//gn.Number();
 
@@ -1017,15 +1029,28 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	/*DO THE FILLET CALCULATION*/ 
 	/***************************/
 	double t0 = 0.0, t1 = 0.0;
+	puntoAppoggio1 = pointStart;
+	puntoAppoggio2 = pointEnd;
 
 	ON_Plane plane;
 	plane.plane_equation.y = 1.0;
 
-	pointStart = crv0->PointAtStart();
-	puntoAppoggio1 = pointStart;
 
-	pointEnd   = crv0->PointAtEnd();
-	puntoAppoggio2 = pointEnd;
+	bool direction = false;
+
+	if(crv0->PointAtStart().z < crv0->PointAtEnd().z)
+	{
+		pointStart = crv0->PointAtStart();
+		pointEnd   = crv0->PointAtEnd();
+
+		direction  = true;
+	}
+	else
+	{
+		pointEnd   = crv0->PointAtStart();
+		pointStart = crv0->PointAtEnd();
+		direction  = false;
+	}
 
 
 	ON_3dPoint point0((pointStart.x - posLen*cos(betaAngle*acos(-1.0)/180.0)), 0.0, (pointStart.z + posLen*sin(betaAngle*acos(-1.0)/180.0)));
@@ -1054,8 +1079,17 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		ON_Interval domain1( curve1.Domain().Min(), t1 );
 		curve1.Trim( domain1 );
 
-		ON_Interval domain0( crv0->Domain().Min(), t0 );
-		crv0->Trim( domain0 );
+
+		if(direction)
+		{
+			ON_Interval domain0(crv0->Domain().Min(), t0);
+			crv0->Trim(domain0);
+		}
+		else
+		{
+			ON_Interval domain0(t0, crv0->Domain().Max());
+			crv0->Trim(domain0);
+		}
 
 		/**************************/
 		/*COMPUTE THE FILLET CURVE*/ 
@@ -1095,8 +1129,17 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		ON_Interval domain0( t1, curve0.Domain().Max() );
 		curve0.Trim( domain0 );
 
-		ON_Interval domain1( t0, crv0->Domain().Max() );
-		crv0->Trim( domain1 );
+
+		if(direction)
+		{
+			ON_Interval domain1(t0, crv0->Domain().Max() );
+			crv0->Trim( domain1 );
+		}
+		else
+		{
+			ON_Interval domain0(crv0->Domain().Min(), t0);
+			crv0->Trim(domain0);
+		}
 
 		/**************************/
 		/*COMPUTE THE FILLET CURVE*/ 
