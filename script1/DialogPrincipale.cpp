@@ -32,7 +32,7 @@ DialogPrincipale::DialogPrincipale(CWnd* pParent)
 	, FilletDx(_T("6"))
 	, FilletSx(_T("13"))
 	, LayerPV(_T("pv"))
-	, NomeTacchificio(_T("Tacchificio_Monti"))
+	, NomeTacchificio(_T("Monti"))
 	, mmTacchificio(_T("4"))
 	, numeroArticolo(_T("12345"))
 	, mmnumeroArticolo(_T("4"))
@@ -40,7 +40,7 @@ DialogPrincipale::DialogPrincipale(CWnd* pParent)
 	, mmcodiceCliente(_T("4"))
 	, taglia(_T("00"))
 	, mmtaglia(_T("6"))
-	, tipologiafont(_T("McSoft_Font-1"))
+	, tipologiafont(_T("MecSoft_Font-1"))
 {
 }
 

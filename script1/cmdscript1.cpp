@@ -1952,10 +1952,10 @@ CRhinoCommand::result CGenCylinder::RunCommand( const CRhinoCommandContext& cont
 			int nIndex1 = plugin.m_dialog->AltezzaFondelloControllo.GetCurSel();
 			CString strCBText1;
 			plugin.m_dialog->AltezzaFondelloControllo.GetLBText( nIndex1, strCBText1);
-			int altfondello = _wtoi(strCBText1); // da interaccia parte da 10
+			int altfondello = _wtoi(strCBText1); // da interfaccia parte da 10
 			double valpresa = 80-altfondello;
-			ON_3dPoint proc1 (0,0,valpresa);
-			ON_3dPoint proc2 (0,0,valpresa+20);
+			ON_3dPoint proc1 (0,-62.5,valpresa); // y=-62.5 da email cristiano 22 feb 2013
+			ON_3dPoint proc2 (0,-62.5,valpresa+20);// y=-62.5 da email cristiano 22 feb 2013
 			int nIndex = plugin.m_dialog->m_comboAltTacco.GetCurSel();
 			CString strCBText;
 			plugin.m_dialog->m_comboAltTacco.GetLBText( nIndex, strCBText);
