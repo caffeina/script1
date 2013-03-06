@@ -147,4 +147,7 @@ public:
 	CString mmtaglia;
 public:
 	CString tipologiafont;
+public:
+	// rocchetto normale, trasversale..
+	CString StatoTipologiaStampo;
 };

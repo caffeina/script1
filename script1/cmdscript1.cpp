@@ -2425,11 +2425,32 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 	  context.m_doc.Redraw();
 	  ON_SimpleArray<CRhUndoRecord* > UndoRec; 
 	  context.m_doc.BeginUndoRecord(L"AC_CardBoard");
+			//
+			//////////////// BEGIN DIFF NORMALE TRASVERSALE ////////////
+			//CComboBox *combo= (CComboBox *)GetDlgItem(plugin.m_dialog->m_hWnd, IDC_COMBO2);
+			//CString strCBText;
+			////CWnd::UpdateData();
+			//int nIndex = combo->GetCurSel();
+			//combo->GetLBText( nIndex, strCBText);
+			////(strCBText)==("Rocchetto Normale") da mettere nell'if successivo. sara' gestito in futuro
+			//CString statorocchetto = plugin.m_dialog->StatoTipologiaStampo
+			//////////////// BEGIN DIFF NORMALE TRASVERSALE ////////////
 
 	  //begin calcolo il punto di intersezione per disegnare l'ugello
 	  double valore_ugello =(_wtof(plugin.m_dialog->ValIniezioneDisassamento));
-	  ON_3dPoint inizio_linea (valore_ugello,0,0);
-	  ON_3dPoint fine_linea (valore_ugello,0,130);
+	  ON_3dPoint inizio_linea; // (valore_ugello,0,0);
+	  ON_3dPoint fine_linea; // (valore_ugello,0,130);
+	  if ((plugin.m_dialog->StatoTipologiaStampo)==(L"Rocchetto Normale"))
+	  {
+		  inizio_linea.Set(valore_ugello,0,0);
+		  fine_linea.Set(valore_ugello,0,130);
+	  }
+	  if ((plugin.m_dialog->StatoTipologiaStampo)==(L"Rocchetto Trasversale"))
+	  {
+		  inizio_linea.Set(0,0,0);
+		  fine_linea.Set(0,0,130);
+	  }
+
 	  ON_Line line_ugello( inizio_linea, fine_linea );
 	  const ON_LineCurve* crv3 = new ON_LineCurve(line_ugello);
 	  // context.m_doc.AddCurveObject( line_ugello );

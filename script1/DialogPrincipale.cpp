@@ -41,6 +41,7 @@ DialogPrincipale::DialogPrincipale(CWnd* pParent)
 	, taglia(_T("00"))
 	, mmtaglia(_T("6"))
 	, tipologiafont(_T("MecSoft_Font-1"))
+	, StatoTipologiaStampo(_T("Rocchetto Normale"))
 {
 }
 
@@ -86,6 +87,7 @@ void DialogPrincipale::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT16, taglia);
 	DDX_Text(pDX, IDC_EDIT19, mmtaglia);
 	DDX_Text(pDX, IDC_EDIT21, tipologiafont);
+	DDX_CBString(pDX, IDC_COMBO2, StatoTipologiaStampo);
 }
 
 
@@ -350,6 +352,17 @@ void DialogPrincipale::OnBnClickedButton2()
 	GetDlgItem(IDC_BUTTON3)->EnableWindow(TRUE);
 	GetDlgItem(IDC_BUTTON14)->EnableWindow(TRUE);
 	UpdateData(true);
+				//inizio risoluzione baco altezza tacco vuoto
+	CComboBox *combo= (CComboBox *)GetDlgItem(IDC_CMBAltezzaTacco);
+	UpdateData(true);
+	CString strCBText;
+	int nIndex = combo->GetCurSel();
+	combo->GetLBText( nIndex, strCBText);
+	
+	if((strCBText)==("") )return; 
+	// se mancava l'altezza stampo succedeva un casino
+				//fine inizio risoluzione baco altezza tacco vuoto
+	
 	RhinoApp().RunScript( L"! _GenPianoVis", 0);
 	RhinoApp().RunScript( L"! _GenCylinder", 0);
 	UpdateData(true);
