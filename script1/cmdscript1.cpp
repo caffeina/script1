@@ -21,6 +21,8 @@ ON_LineCurve CurvaPV;
 ON_3dPointArray m_P;
 bool ExistPVLine = false;
 ON_wString layer_PVLine = L"NONE";
+//ON_NurbsCurve* nc = ON_NurbsCurve::New(); 
+const CRhinoObject* duplicateNurbsPV;
 
 /*********************************************************/
 
@@ -643,18 +645,18 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	/***************************/
 	/*REDRAWING ORIGINAL PVLINE*/
 	/***************************/
-	ON_LineCurve curva;
-	curva.SetStartPoint(CurvaPV.PointAtStart());
-	curva.SetEndPoint(CurvaPV.PointAtEnd());
-	CRhinoCurveObject ObjPVLine = CRhinoCurveObject();
-	ObjPVLine.SetCurve(&curva);
-	CRhinoObjectAttributes atts(ObjPVLine.Attributes());
-	atts.m_layer_index = context.m_doc.m_layer_table.FindLayer(plugin.m_dialog->LayerPV);
-	if(context.m_doc.AddCurveObject(curva, &atts))
-	{
-		context.m_doc.Redraw();
-	}
+	
 
+	const ON_Curve* nc = ON_Curve::Cast(duplicateNurbsPV->Geometry());
+	if(nc)
+	{
+		CRhinoObjectAttributes atts;
+		atts.m_layer_index = context.m_doc.m_layer_table.FindLayer(plugin.m_dialog->LayerPV);
+		if(context.m_doc.AddCurveObject(*nc, &atts))
+		{
+			context.m_doc.Redraw();
+		}
+	}
 	/*************************************************/
 
 
@@ -702,7 +704,15 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	const CRhinoObjRef& objref = objectsPV[0];
 	
 	const ON_Curve* pC = ON_Curve::Cast(objref.Geometry());
+	if(!pC)
+	{
+		return CRhinoCommand::nothing;
+	}
 	ON_Curve* crv0 = pC->DuplicateCurve();
+	if(!crv0)
+	{
+		return CRhinoCommand::nothing;
+	}
 
 	bool rc0 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 1, _wtof(plugin.m_dialog->EstLineaDx));
 	bool rc1 = RhinoExtendCurve(crv0, CRhinoExtend::Line, 0, _wtof(plugin.m_dialog->EstLineaSx));
@@ -724,20 +734,58 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	ON_3dPoint pointStart;
 	ON_3dPoint pointEnd;
 
+/****************************************************/
+	/*POSITIVE PV LINE' DIRECTION : POSITIVE X DIRECTION*/
+	/****************************************************/
+	ON_3dPoint Pt_s;
+	ON_3dPoint Pt_e;
+	double extensionDX = 0.0;
+	double extensionSX = 0.0;
+	if(crv0->PointAtStart().z < crv0->PointAtEnd().z)
+	{
+		Pt_s = crv0->PointAtStart();
+		Pt_e = crv0->PointAtEnd();
+	    extensionDX = _wtof(plugin.m_dialog->EstLineaDx);
+	    extensionSX = _wtof(plugin.m_dialog->EstLineaSx);
+	}
+	else
+	{
+		Pt_e = crv0->PointAtStart();
+		Pt_s = crv0->PointAtEnd();
+	    extensionSX = _wtof(plugin.m_dialog->EstLineaDx);
+	    extensionDX = _wtof(plugin.m_dialog->EstLineaSx);
+	}
 	/******************************/
 	/*DOING THE FILLET CALCULATION*/ 
 	/******************************/
-	double t0 = 0.0, t1 = 0.0;
+	double t0 = 0.0; 
+	double t1 = 0.0;
+	
 
 	ON_Plane plane;
 	plane.plane_equation.y = 1.0;
 
-	pointStart = crv0->PointAtStart();
+
+
+	bool direction = false;
+
+	if(crv0->PointAtStart().z < crv0->PointAtEnd().z)
+	{
+		pointStart = crv0->PointAtStart();
+		pointEnd   = crv0->PointAtEnd();
+
+		direction  = true;
+	}
+	else
+	{
+		pointEnd   = crv0->PointAtStart();
+		pointStart = crv0->PointAtEnd();
+		direction  = false;
+	}
+	
 	puntoAppoggio1 = pointStart;
-
-	pointEnd   = crv0->PointAtEnd();
 	puntoAppoggio2 = pointEnd;
-
+	
 	ON_3dPoint point0((pointStart.x - posLen*cos(betaAngle*acos(-1.0)/180.0)), 0.0, (pointStart.z + posLen*sin(betaAngle*acos(-1.0)/180.0)));
 	ON_3dPoint point1((pointEnd.x + antLen*cos(alphaAngle*acos(-1.0)/180.0)), 0.0, (pointEnd.z - antLen*sin(alphaAngle*acos(-1.0)/180.0)));
 
@@ -765,8 +813,16 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		ON_Interval domain1( curve1.Domain().Min(), t1 );
 		curve1.Trim( domain1 );
 
-		ON_Interval domain0( crv0->Domain().Min(), t0 );
-		crv0->Trim( domain0 );
+		if(direction)
+		{
+			ON_Interval domain0(crv0->Domain().Min(), t0);
+			crv0->Trim(domain0);
+		}
+		else
+		{
+			ON_Interval domain0(t0, crv0->Domain().Max());
+			crv0->Trim(domain0);
+		}
 
 		/**************************/
 		/*COMPUTE THE FILLET CURVE*/ 
@@ -807,8 +863,16 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		ON_Interval domain0( t1, curve0.Domain().Max() );
 		curve0.Trim( domain0 );
 
-		ON_Interval domain1( t0, crv0->Domain().Max() );
-		crv0->Trim( domain1 );
+		if(direction)
+		{
+			ON_Interval domain1(t0, crv0->Domain().Max() );
+			crv0->Trim( domain1 );
+		}
+		else
+		{
+			ON_Interval domain0(crv0->Domain().Min(), t0);
+			crv0->Trim(domain0);
+		}
 
 		/**************************/
 		/*COMPUTE THE FILLET CURVE*/ 
@@ -975,6 +1039,7 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 	const CRhinoObjRef& objref = gc.Object(0);
 	const ON_Curve* pC = ON_Curve::Cast( objref.Geometry() );
 	ON_Curve* crv0 = pC->DuplicateCurve();
+	duplicateNurbsPV = objref.Object()->Duplicate();
 
 /****************************************************/
 	/*POSITIVE PV LINE' DIRECTION : POSITIVE X DIRECTION*/
@@ -1051,7 +1116,9 @@ CRhinoCommand::result CGenPianoVis::RunCommand( const CRhinoCommandContext& cont
 		pointStart = crv0->PointAtEnd();
 		direction  = false;
 	}
-
+	
+	puntoAppoggio1 = pointStart;
+	puntoAppoggio2 = pointEnd;
 
 	ON_3dPoint point0((pointStart.x - posLen*cos(betaAngle*acos(-1.0)/180.0)), 0.0, (pointStart.z + posLen*sin(betaAngle*acos(-1.0)/180.0)));
 	ON_3dPoint point1((pointEnd.x + antLen*cos(alphaAngle*acos(-1.0)/180.0)), 0.0, (pointEnd.z - antLen*sin(alphaAngle*acos(-1.0)/180.0)));
