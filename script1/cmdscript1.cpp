@@ -2425,16 +2425,7 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 	  context.m_doc.Redraw();
 	  ON_SimpleArray<CRhUndoRecord* > UndoRec; 
 	  context.m_doc.BeginUndoRecord(L"AC_CardBoard");
-			//
-			//////////////// BEGIN DIFF NORMALE TRASVERSALE ////////////
-			//CComboBox *combo= (CComboBox *)GetDlgItem(plugin.m_dialog->m_hWnd, IDC_COMBO2);
-			//CString strCBText;
-			////CWnd::UpdateData();
-			//int nIndex = combo->GetCurSel();
-			//combo->GetLBText( nIndex, strCBText);
-			////(strCBText)==("Rocchetto Normale") da mettere nell'if successivo. sara' gestito in futuro
-			//CString statorocchetto = plugin.m_dialog->StatoTipologiaStampo
-			//////////////// BEGIN DIFF NORMALE TRASVERSALE ////////////
+			
 
 	  //begin calcolo il punto di intersezione per disegnare l'ugello
 	  double valore_ugello =(_wtof(plugin.m_dialog->ValIniezioneDisassamento));
@@ -2524,12 +2515,18 @@ CRhinoCommand::result CGenUgello::RunCommand( const CRhinoCommandContext& contex
 	  //begin calcolo il punto di intersezione per disegnare l'ugello
 	  
 	  
+	   if ((plugin.m_dialog->StatoTipologiaStampo)==(L"Rocchetto Trasversale"))
+	   {
+			PuntoIntersezione.y+=valore_ugello;
+
+	   }
+	   ON_3dPoint top_pt = PuntoIntersezione;
 	  
 	  ON_3dPoint bottom_pt = PuntoIntersezione; // l'altro punto, e.m_A[0], non e' preciso.
 	  double bottom_radius = 3.25;
 	  ON_Circle bottom_circle( bottom_pt, bottom_radius );
 
-	   ON_3dPoint top_pt = PuntoIntersezione;
+	   
 	   
 		top_pt.z+=8.0;
 	   double top_radius = 11;
